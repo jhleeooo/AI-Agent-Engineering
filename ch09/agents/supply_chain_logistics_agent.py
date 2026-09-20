@@ -11,6 +11,7 @@ import builtins
 from typing import Annotated, Sequence, TypedDict, Optional
 
 from langchain.chat_models import init_chat_model
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
 from langchain_core.messages.tool import ToolMessage
 from langchain_core.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
@@ -151,8 +152,21 @@ TOOLS = [
 ]
 
 
-llm = init_chat_model(model="gpt-5-mini", callbacks=[StreamingStdOutCallbackHandler()],  
-    verbose=True).bind_tools(TOOLS)
+def build_llm():
+    """Build the chat model per LLM_PROVIDER (env var, default "openai")."""
+    provider = os.getenv("LLM_PROVIDER", "openai").lower()
+    if provider == "gemini":
+        base = ChatGoogleGenerativeAI(
+            model=os.getenv("GEMINI_MODEL", "gemini-flash-latest"),
+            temperature=0.0,
+        )
+    else:
+        base = init_chat_model(
+            model="gpt-5-mini", callbacks=[StreamingStdOutCallbackHandler()], verbose=True,
+        )
+    return base.bind_tools(TOOLS)
+
+llm = build_llm()
 
 class AgentState(TypedDict):
     operation: Optional[dict]  # 공급망 운영 정보

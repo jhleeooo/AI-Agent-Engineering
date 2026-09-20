@@ -15,11 +15,12 @@ import multiprocessing
 
 import redis
 from langchain_openai.chat_models import ChatOpenAI
-from langchain.schema import AIMessage, BaseMessage, HumanMessage, SystemMessage
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
 from langchain_core.messages.tool import ToolMessage
-from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+from langchain_core.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 
-from langchain.tools import tool
+from langchain_core.tools import tool
 from langgraph.graph import StateGraph, END
 
 from traceloop.sdk import Traceloop
@@ -157,7 +158,21 @@ def handle_compliance(compliance_type: str = None, **kwargs) -> str:
 SUPPLIER_TOOLS = [evaluate_suppliers, handle_compliance, send_logistics_response]
 
 Traceloop.init(disable_batch=True, app_name="supply_chain_logistics_agent_redis")
-llm = ChatOpenAI(model="gpt-4o", temperature=0.0, callbacks=[StreamingStdOutCallbackHandler()], verbose=True)
+
+def build_llm():
+    """Build the base chat model per LLM_PROVIDER (env var, default "openai"). Per-role tool bindings are applied by callers."""
+    provider = os.getenv("LLM_PROVIDER", "openai").lower()
+    if provider == "gemini":
+        return ChatGoogleGenerativeAI(
+            model=os.getenv("GEMINI_MODEL", "gemini-flash-latest"),
+            temperature=0.0,
+        )
+    return ChatOpenAI(
+        model="gpt-4o", temperature=0.0,
+        callbacks=[StreamingStdOutCallbackHandler()], verbose=True,
+    )
+
+llm = build_llm()
 
 # Bind tools to specialized LLMs
 inventory_llm = llm.bind_tools(INVENTORY_TOOLS)

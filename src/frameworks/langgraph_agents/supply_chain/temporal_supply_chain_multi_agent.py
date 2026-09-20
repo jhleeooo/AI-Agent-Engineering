@@ -15,11 +15,12 @@ from temporalio import workflow, activity
 from temporalio.common import RetryPolicy
 
 from langchain_openai.chat_models import ChatOpenAI
-from langchain.schema import AIMessage, BaseMessage, HumanMessage, SystemMessage
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
 from langchain_core.messages.tool import ToolMessage
-from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+from langchain_core.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 
-from langchain.tools import tool
+from langchain_core.tools import tool
 from temporalio.client import Client
 from temporalio.worker import Worker
 
@@ -56,7 +57,21 @@ TRANSPORTATION_TOOLS = [...]  # Full list
 SUPPLIER_TOOLS = [...]  # Full list
 
 Traceloop.init(disable_batch=True, app_name="supply_chain_logistics_agent_temporal")
-llm = ChatOpenAI(model="gpt-4o", temperature=0.0, callbacks=[StreamingStdOutCallbackHandler()], verbose=True)
+
+def build_llm():
+    """Build the base chat model per LLM_PROVIDER (env var, default "openai"). Per-role tool bindings are applied by callers."""
+    provider = os.getenv("LLM_PROVIDER", "openai").lower()
+    if provider == "gemini":
+        return ChatGoogleGenerativeAI(
+            model=os.getenv("GEMINI_MODEL", "gemini-flash-latest"),
+            temperature=0.0,
+        )
+    return ChatOpenAI(
+        model="gpt-4o", temperature=0.0,
+        callbacks=[StreamingStdOutCallbackHandler()], verbose=True,
+    )
+
+llm = build_llm()
 
 # Bind tools to specialized LLMs
 inventory_llm = llm.bind_tools(INVENTORY_TOOLS)
