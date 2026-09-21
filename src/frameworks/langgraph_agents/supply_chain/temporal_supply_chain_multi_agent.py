@@ -175,10 +175,15 @@ def as_text(content) -> str:
         return "".join(part.get("text", "") if isinstance(part, dict) else str(part) for part in content)
     return content
 
-# Bind tools to specialized LLMs
-inventory_llm = llm.bind_tools(INVENTORY_TOOLS)
-transportation_llm = llm.bind_tools(TRANSPORTATION_TOOLS)
-supplier_llm = llm.bind_tools(SUPPLIER_TOOLS)
+_MESSAGE_TYPES = {"human": HumanMessage, "ai": AIMessage, "system": SystemMessage, "tool": ToolMessage}
+
+def to_message(m):
+    """Reconstruct a BaseMessage from its serialized dict (see BaseMessage.dict()) by its own
+    "type" field, not blindly as one fixed class — activity/workflow payloads mix human, ai
+    and tool messages, and Temporal only carries them as plain dicts across the wire."""
+    if not isinstance(m, dict):
+        return m
+    return _MESSAGE_TYPES.get(m.get("type"), HumanMessage)(**m)
 
 class AgentState(TypedDict):
     operation: Optional[dict]  # Supply chain operation information
@@ -202,25 +207,32 @@ async def supervisor_activity(operation: Dict[str, Any], messages: list) -> Dict
         f"OPERATION: {operation_json}"
     )
 
-    full = [SystemMessage(content=supervisor_prompt)] + [HumanMessage(**m) if isinstance(m, dict) else m for m in messages]
+    full = [SystemMessage(content=supervisor_prompt)] + [to_message(m) for m in messages]
     response = llm.invoke(full)
     agent_name = as_text(response.content).strip().lower()
     return {"agent_name": agent_name, "messages": [response.dict()]}
 
 @activity.defn
-async def specialist_activity(agent_name: str, operation: Dict[str, Any], messages: list, prompts: Dict[str, str], llms: Dict[str, Any], tools_dict: Dict[str, list]) -> Dict[str, Any]:
-    """Activity for specialist processing (inventory, transportation, supplier)."""
+async def specialist_activity(agent_name: str, operation: Dict[str, Any], messages: list) -> Dict[str, Any]:
+    """Activity for specialist processing (inventory, transportation, supplier).
+
+    Builds its own LLM from `agent_name` rather than receiving a live LLM or
+    tool object as an argument: Temporal serializes every activity argument
+    with its data converter (JSON by default), which can't encode a bound
+    LLM client or a StructuredTool.
+    """
     if agent_name not in prompts:
         raise ValueError(f"Unknown agent: {agent_name}")
-    
-    specialist_llm = llms[agent_name]
-    tools = {t.name: t for t in tools_dict[agent_name]}
+
+    role_tools = tools_dict[agent_name]
+    specialist_llm = build_llm().bind_tools(role_tools)
+    tools = {t.name: t for t in role_tools}
     system_prompt = prompts[agent_name]
     
     operation_json = json.dumps(operation, ensure_ascii=False)
     full_prompt = system_prompt + f"\n\nOPERATION: {operation_json}"
     
-    full = [SystemMessage(content=full_prompt)] + [HumanMessage(**m) if isinstance(m, dict) else m for m in messages]
+    full = [SystemMessage(content=full_prompt)] + [to_message(m) for m in messages]
 
     first = specialist_llm.invoke(full)
     result_messages = [first.dict()]
@@ -232,7 +244,7 @@ async def specialist_activity(agent_name: str, operation: Dict[str, Any], messag
                 out = fn.invoke(tc["args"])
                 result_messages.append(ToolMessage(content=str(out), tool_call_id=tc["id"]).dict())
 
-        second = specialist_llm.invoke(full + [ToolMessage(**msg) if isinstance(msg, dict) else msg for msg in result_messages])
+        second = specialist_llm.invoke(full + [to_message(msg) for msg in result_messages])
         result_messages.append(second.dict())
 
     return {"messages": result_messages}
@@ -241,7 +253,7 @@ async def specialist_activity(agent_name: str, operation: Dict[str, Any], messag
 @workflow.defn(name="SupplyChainWorkflow")
 class SupplyChainWorkflow:
     @workflow.run
-    async def run(self, operation: Dict[str, Any], initial_messages: list, prompts: Dict[str, str], llms: Dict[str, Any], tools_dict: Dict[str, list]) -> Dict[str, Any]:
+    async def run(self, operation: Dict[str, Any], initial_messages: list) -> Dict[str, Any]:
         # Step 1: Supervisor to route
         supervisor_result = await workflow.execute_activity(
             supervisor_activity,
@@ -255,7 +267,7 @@ class SupplyChainWorkflow:
         # Step 2: Specialist processing
         specialist_result = await workflow.execute_activity(
             specialist_activity,
-            args=[agent_name, operation, updated_messages, prompts, llms, tools_dict],
+            args=[agent_name, operation, updated_messages],
             start_to_close_timeout=timedelta(seconds=60),
             retry_policy=RetryPolicy(maximum_attempts=3)
         )
@@ -300,12 +312,6 @@ prompts = {
     "supplier": supplier_prompt
 }
 
-llms_dict = {
-    "inventory": inventory_llm,
-    "transportation": transportation_llm,
-    "supplier": supplier_llm
-}
-
 tools_dict = {
     "inventory": INVENTORY_TOOLS,
     "transportation": TRANSPORTATION_TOOLS,
@@ -322,7 +328,7 @@ async def main():
 
         result = await client.execute_workflow(
             SupplyChainWorkflow.run,
-            {"operation": example_operation, "initial_messages": example_messages, "prompts": prompts, "llms": llms_dict, "tools_dict": tools_dict},
+            args=[example_operation, example_messages],
             id="supply-chain-workflow",
             task_queue="supply-chain-queue"
         )
