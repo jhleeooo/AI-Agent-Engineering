@@ -167,10 +167,11 @@ def build_llm():
 
 llm = build_llm()
 
-# Bind tools to specialized LLMs
-inventory_llm = llm.bind_tools(INVENTORY_TOOLS)
-transportation_llm = llm.bind_tools(TRANSPORTATION_TOOLS)
-supplier_llm = llm.bind_tools(SUPPLIER_TOOLS)
+def as_text(content) -> str:
+    """Normalize AIMessage.content to plain text (Gemini returns a list of content blocks; OpenAI returns str)."""
+    if isinstance(content, list):
+        return "".join(part.get("text", "") if isinstance(part, dict) else str(part) for part in content)
+    return content
 
 class AgentState(TypedDict):
     operation: Optional[dict]  # Supply chain operation information
@@ -179,9 +180,11 @@ class AgentState(TypedDict):
 # Ray Actor for Specialists (per-session isolation)
 @ray.remote
 class SpecialistActor:
-    def __init__(self, name: str, specialist_llm, tools: list, system_prompt: str):
+    def __init__(self, name: str, tools: list, system_prompt: str):
+        # Built inside the actor process: a live LLM client (sockets/locks) can't be
+        # passed as a Ray call argument, since Ray serializes arguments with cloudpickle.
         self.name = name
-        self.llm = specialist_llm
+        self.llm = build_llm().bind_tools(tools)
         self.tools = {t.name: t for t in tools}
         self.prompt = system_prompt
         self.internal_state = {}  # Isolated per-session state, e.g., for tracking within the session
@@ -224,11 +227,11 @@ class SessionManager:
     def __init__(self):
         self.sessions: Dict[str, Dict[str, ray.actor.ActorHandle]] = {}  # session_id -> {agent_name: actor}
 
-    def get_or_create_actor(self, session_id: str, agent_name: str, llm, tools: list, prompt: str):
+    def get_or_create_actor(self, session_id: str, agent_name: str, tools: list, prompt: str):
         if session_id not in self.sessions:
             self.sessions[session_id] = {}
         if agent_name not in self.sessions[session_id]:
-            actor = SpecialistActor.remote(agent_name, llm, tools, prompt)
+            actor = SpecialistActor.remote(agent_name, tools, prompt)
             self.sessions[session_id][agent_name] = actor
         return self.sessions[session_id][agent_name]
 
@@ -239,7 +242,7 @@ class SessionManager:
         return None
 
 # Supervisor: Determines specialist and invokes session-specific Ray actor remotely via manager
-def supervisor_invoke(operation: dict, messages: Sequence[BaseMessage], manager: ray.actor.ActorHandle, llms: dict, tools_dict: dict, prompts: dict):
+def supervisor_invoke(operation: dict, messages: Sequence[BaseMessage], manager: ray.actor.ActorHandle, tools_dict: dict, prompts: dict):
     session_id = operation.get("operation_id", "UNKNOWN")
     operation_json = json.dumps(operation, ensure_ascii=False)
     
@@ -257,14 +260,14 @@ def supervisor_invoke(operation: dict, messages: Sequence[BaseMessage], manager:
 
     full = [SystemMessage(content=supervisor_prompt)] + messages
     response = llm.invoke(full)
-    agent_name = response.content.strip().lower()
-    
-    if agent_name not in llms:
+    agent_name = as_text(response.content).strip().lower()
+
+    if agent_name not in tools_dict:
         raise ValueError(f"Unknown agent: {agent_name}")
-    
+
     # Get or create session-specific actor
     actor_ref = manager.get_or_create_actor.remote(
-        session_id, agent_name, llms[agent_name], tools_dict[agent_name], prompts[agent_name]
+        session_id, agent_name, tools_dict[agent_name], prompts[agent_name]
     )
     actor = ray.get(actor_ref)  # Get the actor handle
     
@@ -308,12 +311,6 @@ if __name__ == "__main__":
         "supplier": supplier_prompt
     }
 
-    llms = {
-        "inventory": inventory_llm,
-        "transportation": transportation_llm,
-        "supplier": supplier_llm
-    }
-
     tools_dict = {
         "inventory": INVENTORY_TOOLS,
         "transportation": TRANSPORTATION_TOOLS,
@@ -327,7 +324,7 @@ if __name__ == "__main__":
     example = {"operation_id": "OP-12345", "type": "inventory_management", "priority": "high", "location": "Warehouse A"}
     convo = [HumanMessage(content="We're running critically low on SKU-12345. Current stock is 50 units but we have 200 units on backorder. What's our reorder strategy?")]
 
-    result = supervisor_invoke(example, convo, manager, llms, tools_dict, prompts)
+    result = supervisor_invoke(example, convo, manager, tools_dict, prompts)
     for m in result["messages"]:
         print(f"{m.type}: {m.content}")
 
