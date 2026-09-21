@@ -11,11 +11,12 @@ import builtins
 from typing import Annotated, Sequence, TypedDict, Optional
 
 from langchain_openai.chat_models import ChatOpenAI
-from langchain.schema import AIMessage, BaseMessage, HumanMessage, SystemMessage
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
 from langchain_core.messages.tool import ToolMessage
-from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+from langchain_core.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 
-from langchain.tools import tool
+from langchain_core.tools import tool
 from langgraph.graph import StateGraph, END
 
 from traceloop.sdk import Traceloop
@@ -86,8 +87,23 @@ TOOLS = [
 ]
 
 Traceloop.init(disable_batch=True, app_name="legal_document_review_agent")
-llm = ChatOpenAI(model="gpt-4o", temperature=0.0, callbacks=[StreamingStdOutCallbackHandler()],  
-    verbose=True).bind_tools(TOOLS)
+
+def build_llm():
+    """Build the chat model per LLM_PROVIDER (env var, default "openai")."""
+    provider = os.getenv("LLM_PROVIDER", "openai").lower()
+    if provider == "gemini":
+        base = ChatGoogleGenerativeAI(
+            model=os.getenv("GEMINI_MODEL", "gemini-flash-latest"),
+            temperature=0.0,
+        )
+    else:
+        base = ChatOpenAI(
+            model="gpt-4o", temperature=0.0,
+            callbacks=[StreamingStdOutCallbackHandler()], verbose=True,
+        )
+    return base.bind_tools(TOOLS)
+
+llm = build_llm()
 
 class AgentState(TypedDict):
     matter: Optional[dict]  # Legal matter/case information

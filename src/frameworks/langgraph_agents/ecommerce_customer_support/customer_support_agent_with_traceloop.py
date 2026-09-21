@@ -4,45 +4,47 @@ customer_support_agent.py
 LangGraph workflow for an e-commerce customer-support agent,
 using LangGraph's built-in tool-calling via @tool decorators.
 """
+import os
 import json
 import operator
 import builtins
 from typing import Annotated, Sequence, TypedDict
 
 from langchain_openai.chat_models import ChatOpenAI
-from langchain.schema import AIMessage, BaseMessage, HumanMessage, SystemMessage
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
 from langchain_core.messages.tool import ToolMessage
-from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+from langchain_core.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 
-from langchain.tools import tool
+from langchain_core.tools import tool
 from langgraph.graph import StateGraph, END
 
 from traceloop.sdk import Traceloop
 from traceloop.sdk.decorators import workflow
 
-@workflow(name='send_customer_message')
 @tool
+@workflow(name='send_customer_message')
 def send_customer_message(order_id: str, text: str) -> str:
     """Send a plain response to the customer."""
     print(f"[TOOL] send_customer_message → {text}")
     return "sent"
 
-@workflow(name='issue_refund')
 @tool
+@workflow(name='issue_refund')
 def issue_refund(order_id: str, amount: float) -> str:
     """Issue a refund for the given order."""
     print(f"[TOOL] issue_refund(order_id={order_id}, amount={amount})")
     return "refund_queued"
 
-@workflow(name='cancel_order')
 @tool
+@workflow(name='cancel_order')
 def cancel_order(order_id: str) -> str:
     """Cancel an order that hasn't shipped."""
     print(f"[TOOL] cancel_order(order_id={order_id})")
     return "cancelled"
 
-@workflow(name='modify_order')
 @tool
+@workflow(name='modify_order')
 def modify_order(order_id: str, shipping_address: dict) -> str:
     """Change the shipping address for a pending order."""
     print(f"[TOOL] modify_order(order_id={order_id}, address={shipping_address})")
@@ -51,8 +53,23 @@ def modify_order(order_id: str, shipping_address: dict) -> str:
 TOOLS = [send_customer_message, issue_refund, cancel_order, modify_order]
 
 Traceloop.init(disable_batch=True)
-llm = ChatOpenAI(model="gpt-4o", temperature=0.0, callbacks=[StreamingStdOutCallbackHandler()],  
-    verbose=True).bind_tools(TOOLS)
+
+def build_llm():
+    """Build the chat model per LLM_PROVIDER (env var, default "openai")."""
+    provider = os.getenv("LLM_PROVIDER", "openai").lower()
+    if provider == "gemini":
+        base = ChatGoogleGenerativeAI(
+            model=os.getenv("GEMINI_MODEL", "gemini-flash-latest"),
+            temperature=0.0,
+        )
+    else:
+        base = ChatOpenAI(
+            model="gpt-4o", temperature=0.0,
+            callbacks=[StreamingStdOutCallbackHandler()], verbose=True,
+        )
+    return base.bind_tools(TOOLS)
+
+llm = build_llm()
 
 class AgentState(TypedDict):
     order: dict
