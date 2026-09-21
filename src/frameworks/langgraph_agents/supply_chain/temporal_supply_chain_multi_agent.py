@@ -38,7 +38,7 @@ def send_logistics_response(operation_id: str = None, message: str = None) -> st
     log_to_loki("tool.send_logistics_response", f"operation_id={operation_id}, message={message}")
     return "logistics_response_sent"
 
-# Inventory & Warehouse Specialist Tools (same as original)
+# Inventory & Warehouse Specialist Tools
 @tool
 def manage_inventory(sku: str = None, **kwargs) -> str:
     """Manage inventory levels, stock replenishment, audits, and optimization strategies."""
@@ -46,15 +46,111 @@ def manage_inventory(sku: str = None, **kwargs) -> str:
     log_to_loki("tool.manage_inventory", f"sku={sku}")
     return "inventory_management_initiated"
 
-# ... (omit other inventory tools for brevity; include all from original)
+@tool
+def optimize_warehouse(operation_type: str = None, **kwargs) -> str:
+    """Optimize warehouse operations, layout, capacity, and storage efficiency."""
+    print(f"[TOOL] optimize_warehouse(operation_type={operation_type}, kwargs={kwargs})")
+    log_to_loki("tool.optimize_warehouse", f"operation_type={operation_type}")
+    return "warehouse_optimization_initiated"
 
-INVENTORY_TOOLS = [manage_inventory, ... , send_logistics_response]  # Full list
+@tool
+def forecast_demand(season: str = None, **kwargs) -> str:
+    """Analyze demand patterns, seasonal trends, and create forecasting models."""
+    print(f"[TOOL] forecast_demand(season={season}, kwargs={kwargs})")
+    log_to_loki("tool.forecast_demand", f"season={season}")
+    return "demand_forecast_generated"
 
-# Transportation Tools (omit for brevity)
-TRANSPORTATION_TOOLS = [...]  # Full list
+@tool
+def manage_quality(supplier: str = None, **kwargs) -> str:
+    """Manage quality control, defect tracking, and supplier quality standards."""
+    print(f"[TOOL] manage_quality(supplier={supplier}, kwargs={kwargs})")
+    log_to_loki("tool.manage_quality", f"supplier={supplier}")
+    return "quality_management_initiated"
 
-# Supplier Tools (omit for brevity)
-SUPPLIER_TOOLS = [...]  # Full list
+@tool
+def scale_operations(scaling_type: str = None, **kwargs) -> str:
+    """Scale operations for peak seasons, capacity planning, and workforce management."""
+    print(f"[TOOL] scale_operations(scaling_type={scaling_type}, kwargs={kwargs})")
+    log_to_loki("tool.scale_operations", f"scaling_type={scaling_type}")
+    return "operations_scaled"
+
+@tool
+def optimize_costs(cost_type: str = None, **kwargs) -> str:
+    """Analyze and optimize transportation, storage, and operational costs."""
+    print(f"[TOOL] optimize_costs(cost_type={cost_type}, kwargs={kwargs})")
+    log_to_loki("tool.optimize_costs", f"cost_type={cost_type}")
+    return "cost_optimization_initiated"
+
+INVENTORY_TOOLS = [manage_inventory, optimize_warehouse, forecast_demand, manage_quality, scale_operations, optimize_costs, send_logistics_response]
+
+# Transportation & Logistics Specialist Tools
+@tool
+def track_shipments(origin: str = None, **kwargs) -> str:
+    """Track shipment status, delays, and coordinate delivery logistics."""
+    print(f"[TOOL] track_shipments(origin={origin}, kwargs={kwargs})")
+    log_to_loki("tool.track_shipments", f"origin={origin}")
+    return "shipment_tracking_updated"
+
+@tool
+def arrange_shipping(shipping_type: str = None, **kwargs) -> str:
+    """Arrange shipping methods, expedited delivery, and multi-modal transportation."""
+    print(f"[TOOL] arrange_shipping(shipping_type={shipping_type}, kwargs={kwargs})")
+    log_to_loki("tool.arrange_shipping", f"shipping_type={shipping_type}")
+    return "shipping_arranged"
+
+@tool
+def coordinate_operations(operation_type: str = None, **kwargs) -> str:
+    """Coordinate complex operations like cross-docking, consolidation, and transfers."""
+    print(f"[TOOL] coordinate_operations(operation_type={operation_type}, kwargs={kwargs})")
+    log_to_loki("tool.coordinate_operations", f"operation_type={operation_type}")
+    return "operations_coordinated"
+
+@tool
+def manage_special_handling(product_type: str = None, **kwargs) -> str:
+    """Handle special requirements for hazmat, cold chain, and sensitive products."""
+    print(f"[TOOL] manage_special_handling(product_type={product_type}, kwargs={kwargs})")
+    log_to_loki("tool.manage_special_handling", f"product_type={product_type}")
+    return "special_handling_managed"
+
+@tool
+def process_returns(returned_quantity: str = None, **kwargs) -> str:
+    """Process returns, reverse logistics, and product disposition."""
+    print(f"[TOOL] process_returns(returned_quantity={returned_quantity}, kwargs={kwargs})")
+    log_to_loki("tool.process_returns", f"returned_quantity={returned_quantity}")
+    return "returns_processed"
+
+@tool
+def optimize_delivery(delivery_type: str = None, **kwargs) -> str:
+    """Optimize delivery routes, last-mile logistics, and sustainability initiatives."""
+    print(f"[TOOL] optimize_delivery(delivery_type={delivery_type}, kwargs={kwargs})")
+    log_to_loki("tool.optimize_delivery", f"delivery_type={delivery_type}")
+    return "delivery_optimization_complete"
+
+@tool
+def manage_disruption(disruption_type: str = None, **kwargs) -> str:
+    """Manage supply chain disruptions, contingency planning, and risk mitigation."""
+    print(f"[TOOL] manage_disruption(disruption_type={disruption_type}, kwargs={kwargs})")
+    log_to_loki("tool.manage_disruption", f"disruption_type={disruption_type}")
+    return "disruption_managed"
+
+TRANSPORTATION_TOOLS = [track_shipments, arrange_shipping, coordinate_operations, manage_special_handling, process_returns, optimize_delivery, manage_disruption, send_logistics_response]
+
+# Supplier & Compliance Specialist Tools
+@tool
+def evaluate_suppliers(supplier_name: str = None, **kwargs) -> str:
+    """Evaluate supplier performance, conduct audits, and manage supplier relationships."""
+    print(f"[TOOL] evaluate_suppliers(supplier_name={supplier_name}, kwargs={kwargs})")
+    log_to_loki("tool.evaluate_suppliers", f"supplier_name={supplier_name}")
+    return "supplier_evaluation_complete"
+
+@tool
+def handle_compliance(compliance_type: str = None, **kwargs) -> str:
+    """Manage regulatory compliance, customs, documentation, and certifications."""
+    print(f"[TOOL] handle_compliance(compliance_type={compliance_type}, kwargs={kwargs})")
+    log_to_loki("tool.handle_compliance", f"compliance_type={compliance_type}")
+    return "compliance_handled"
+
+SUPPLIER_TOOLS = [evaluate_suppliers, handle_compliance, send_logistics_response]
 
 Traceloop.init(disable_batch=True, app_name="supply_chain_logistics_agent_temporal")
 
@@ -144,6 +240,7 @@ async def specialist_activity(agent_name: str, operation: Dict[str, Any], messag
 # Temporal Workflow
 @workflow.defn(name="SupplyChainWorkflow")
 class SupplyChainWorkflow:
+    @workflow.run
     async def run(self, operation: Dict[str, Any], initial_messages: list, prompts: Dict[str, str], llms: Dict[str, Any], tools_dict: Dict[str, list]) -> Dict[str, Any]:
         # Step 1: Supervisor to route
         supervisor_result = await workflow.execute_activity(
@@ -171,10 +268,31 @@ class SupplyChainWorkflow:
             "operation": operation
         }
 
-# Prompts (as in original)
-inventory_prompt = "You are an inventory and warehouse management specialist...\n"  # Full prompt
-transportation_prompt = "You are a transportation and logistics specialist...\n"  # Full prompt
-supplier_prompt = "You are a supplier relations and compliance specialist...\n"  # Full prompt
+# Prompts
+inventory_prompt = (
+    "You are an inventory and warehouse management specialist.\n"
+    "When managing:\n"
+    "  1) Analyze the inventory/warehouse challenge\n"
+    "  2) Call the appropriate tool\n"
+    "  3) Follow up with send_logistics_response\n"
+    "Consider cost, efficiency, and scalability."
+)
+transportation_prompt = (
+    "You are a transportation and logistics specialist.\n"
+    "When managing:\n"
+    "  1) Analyze the shipping/delivery challenge\n"
+    "  2) Call the appropriate tool\n"
+    "  3) Follow up with send_logistics_response\n"
+    "Consider efficiency, sustainability, and risk mitigation."
+)
+supplier_prompt = (
+    "You are a supplier relations and compliance specialist.\n"
+    "When managing:\n"
+    "  1) Analyze the supplier/compliance issue\n"
+    "  2) Call the appropriate tool\n"
+    "  3) Follow up with send_logistics_response\n"
+    "Consider performance, regulations, and relationships."
+)
 
 prompts = {
     "inventory": inventory_prompt,
