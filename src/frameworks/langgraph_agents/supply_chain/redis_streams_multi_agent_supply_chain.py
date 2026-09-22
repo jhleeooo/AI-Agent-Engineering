@@ -174,6 +174,12 @@ def build_llm():
 
 llm = build_llm()
 
+def as_text(content) -> str:
+    """Normalize AIMessage.content to plain text (Gemini returns a list of content blocks; OpenAI returns str)."""
+    if isinstance(content, list):
+        return "".join(part.get("text", "") if isinstance(part, dict) else str(part) for part in content)
+    return content
+
 # Bind tools to specialized LLMs
 inventory_llm = llm.bind_tools(INVENTORY_TOOLS)
 transportation_llm = llm.bind_tools(TRANSPORTATION_TOOLS)
@@ -210,7 +216,7 @@ def supervisor_publish(operation: dict, messages: Sequence[BaseMessage]) -> str:
     full = [SystemMessage(content=supervisor_prompt)] + messages
     response = llm.invoke(full)
     
-    agent_name = response.content.strip().lower()
+    agent_name = as_text(response.content).strip().lower()
     
     r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
     task_id = str(uuid.uuid4())
