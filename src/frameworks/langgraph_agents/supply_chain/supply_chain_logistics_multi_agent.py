@@ -168,6 +168,12 @@ inventory_llm = llm.bind_tools(INVENTORY_TOOLS)
 transportation_llm = llm.bind_tools(TRANSPORTATION_TOOLS)
 supplier_llm = llm.bind_tools(SUPPLIER_TOOLS)
 
+def as_text(content) -> str:
+    """Normalize AIMessage.content to plain text (Gemini returns a list of content blocks; OpenAI returns str)."""
+    if isinstance(content, list):
+        return "".join(part.get("text", "") if isinstance(part, dict) else str(part) for part in content)
+    return content
+
 class AgentState(TypedDict):
     operation: Optional[dict]  # Supply chain operation information
     messages: Annotated[Sequence[BaseMessage], operator.add]
@@ -262,7 +268,7 @@ def supplier_node(state: AgentState):
 # Routing function for conditional edges
 def route_to_specialist(state: AgentState):
     last_message = state["messages"][-1]
-    agent_name = last_message.content.strip().lower()
+    agent_name = as_text(last_message.content).strip().lower()
     if agent_name == "inventory":
         return "inventory"
     elif agent_name == "transportation":
@@ -296,7 +302,7 @@ def actor_node(state: AgentState):
     history = state["messages"]
     actor_prompt = "Generate 3 candidate supply chain plans as JSON list: [{'plan': 'description', 'tools': [...]}]"
     response = llm.invoke([SystemMessage(content=actor_prompt)] + history)
-    state["candidates"] = json.loads(response.content)
+    state["candidates"] = json.loads(as_text(response.content))
     return state
 
 # Critic Node: Evaluates and selects/iterates
@@ -305,7 +311,7 @@ def critic_node(state: AgentState):
     history = state["messages"]
     critic_prompt = f"Score candidates {candidates} on scale 1-10 for feasibility, cost, risk. Select best if >8, else request regeneration."
     response = llm.invoke([SystemMessage(content=critic_prompt)] + history)
-    eval = json.loads(response.content)
+    eval = json.loads(as_text(response.content))
     if eval['best_score'] > 8:
         winning_plan = eval['selected']
         # Execute winning plan's tools (similar to specialist execution)

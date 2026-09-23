@@ -237,7 +237,7 @@ async def specialist_activity(agent_name: str, operation: Dict[str, Any], messag
     first = specialist_llm.invoke(full)
     result_messages = [first.dict()]
 
-    if hasattr(first, "tool_calls"):
+    if getattr(first, "tool_calls", None):
         for tc in first.tool_calls:
             fn = tools.get(tc['name'])
             if fn:
