@@ -1,0 +1,326 @@
+<title>Multi-Agent Build Log</title>
+<style>
+  :root{
+    --bg:#eef1f4;
+    --surface:#ffffff;
+    --surface-2:#e4e9ee;
+    --ink:#1a2027;
+    --ink-dim:#5b6572;
+    --line:#d7dde3;
+    --accent:#3a6ea5;
+    --accent-ink:#1c4870;
+    --good:#2f9e44;
+    --good-bg:#e6f6e9;
+    --warn:#c9820a;
+    --warn-bg:#fbf0dd;
+    --info:#5b6572;
+    --info-bg:#e9edf1;
+    --shadow:0 1px 2px rgba(20,30,40,.06),0 8px 24px rgba(20,30,40,.05);
+    color-scheme:light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#11151a;
+      --surface:#1a2028;
+      --surface-2:#212934;
+      --ink:#e7ebef;
+      --ink-dim:#98a3ae;
+      --line:#2b3440;
+      --accent:#7fb0e0;
+      --accent-ink:#bcdcfa;
+      --good:#5fc971;
+      --good-bg:#173321;
+      --warn:#e6ac4d;
+      --warn-bg:#3a2c11;
+      --info:#98a3ae;
+      --info-bg:#232b34;
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+      color-scheme:dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#11151a;
+    --surface:#1a2028;
+    --surface-2:#212934;
+    --ink:#e7ebef;
+    --ink-dim:#98a3ae;
+    --line:#2b3440;
+    --accent:#7fb0e0;
+    --accent-ink:#bcdcfa;
+    --good:#5fc971;
+    --good-bg:#173321;
+    --warn:#e6ac4d;
+    --warn-bg:#3a2c11;
+    --info:#98a3ae;
+    --info-bg:#232b34;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+    color-scheme:dark;
+  }
+
+  *{box-sizing:border-box}
+  body{background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",system-ui,sans-serif}
+  .wrap{max-width:920px;margin:0 auto;padding:28px 16px 48px}
+
+  .mono{font-family:"JetBrains Mono","IBM Plex Mono",ui-monospace,monospace}
+  .tabular{font-variant-numeric:tabular-nums}
+
+  header.top{display:flex;flex-direction:column;gap:4px;margin-bottom:22px}
+  .eyebrow{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.06em;color:var(--ink-dim);text-transform:uppercase}
+  h1{margin:0;font-size:clamp(24px,4vw,32px);font-weight:700;letter-spacing:-.01em;text-wrap:balance}
+  .sub{margin:2px 0 0;color:var(--ink-dim);font-size:14px;max-width:60ch}
+
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:22px 0 30px}
+  .stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 14px 12px;box-shadow:var(--shadow)}
+  .stat .n{font-family:"JetBrains Mono",monospace;font-size:26px;font-weight:700;line-height:1}
+  .stat .n.good{color:var(--good)}
+  .stat .n.warn{color:var(--warn)}
+  .stat .l{margin-top:6px;font-size:11.5px;color:var(--ink-dim);letter-spacing:.02em}
+
+  section{margin-bottom:30px}
+  h2{font-size:15px;font-weight:700;letter-spacing:.01em;margin:0 0 4px;display:flex;align-items:center;gap:8px}
+  h2 .count{font-family:"JetBrains Mono",monospace;font-weight:500;font-size:12px;color:var(--ink-dim);background:var(--surface-2);border-radius:999px;padding:2px 8px}
+  .hint{margin:0 0 14px;font-size:13px;color:var(--ink-dim)}
+
+  .prlog{list-style:none;margin:0;padding:0;border-left:2px solid var(--line);margin-left:8px}
+  .prlog li{position:relative;padding:0 0 18px 22px}
+  .prlog li::before{content:"";position:absolute;left:-7px;top:3px;width:12px;height:12px;border-radius:50%;background:var(--surface);border:2px solid var(--good)}
+  .prlog li:last-child{padding-bottom:0}
+  .pr-row{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px}
+  .pr-num{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--accent-ink);background:var(--info-bg);border-radius:5px;padding:1px 6px}
+  .pr-title{font-size:14.5px;font-weight:600}
+  .pr-date{margin-left:auto;font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--ink-dim)}
+  a.pr-link{color:inherit;text-decoration:none;border-bottom:1px solid var(--line)}
+  a.pr-link:hover{border-color:var(--accent)}
+
+  .fixed-group{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:14px;box-shadow:var(--shadow)}
+  .fixed-group summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;color:var(--good)}
+  .fixed-group summary::-webkit-details-marker{display:none}
+  .fixed-group summary::before{content:"▸";display:inline-block;transition:transform .15s}
+  .fixed-group[open] summary::before{transform:rotate(90deg)}
+  .fixed-item{display:flex;gap:10px;padding:10px 0 0 20px;font-size:13px}
+  .fixed-item:first-of-type{padding-top:12px}
+  .fixed-item .chk{color:var(--good);flex:none}
+  .fixed-item b{display:block;font-size:13.5px}
+  .fixed-item p{margin:2px 0 0;color:var(--ink-dim)}
+
+  .findings{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+  .finding{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;box-shadow:var(--shadow);cursor:pointer;user-select:none;transition:border-color .12s}
+  .finding:hover{border-color:var(--accent)}
+  .finding:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .f-top{display:flex;align-items:flex-start;gap:10px}
+  .f-num{font-family:"JetBrains Mono",monospace;color:var(--ink-dim);font-size:12px;flex:none;padding-top:2px}
+  .f-body{flex:1;min-width:0}
+  .f-title{font-size:13.5px;font-weight:600;line-height:1.35}
+  .f-detail{margin:4px 0 0;font-size:12.5px;color:var(--ink-dim);line-height:1.5}
+  .pill{flex:none;font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.02em;border-radius:999px;padding:3px 9px;white-space:nowrap}
+  .pill.open{background:var(--warn-bg);color:var(--warn)}
+  .pill.investigating{background:var(--info-bg);color:var(--accent-ink)}
+  .pill.done{background:var(--good-bg);color:var(--good)}
+
+  footer{border-top:1px solid var(--line);padding-top:16px;font-size:12.5px;color:var(--ink-dim);display:flex;flex-wrap:wrap;gap:6px 16px;justify-content:space-between}
+  footer .msg{min-height:1.4em}
+  footer .msg.show{color:var(--accent-ink)}
+
+  @media (max-width:520px){
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .pr-date{margin-left:0}
+  }
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+
+<div class="wrap" id="page-root">
+  <header class="top">
+    <span class="eyebrow">jhleeooo / AI-Agent-Engineering</span>
+    <h1>Multi-agent build log</h1>
+    <p class="sub">Pull-request history and the <code>/code-review max</code> findings tracker for the Ray / Redis Streams / Temporal supply-chain agents. GitHub Issues is disabled on this repo, so this board is the record.</p>
+  </header>
+
+  <div class="stats" id="stats"></div>
+
+  <section>
+    <h2>Pull request log <span class="count" id="pr-count"></span></h2>
+    <p class="hint">Squash-merged onto <span class="mono">main</span>, oldest first.</p>
+    <ul class="prlog" id="prlog"></ul>
+  </section>
+
+  <section>
+    <h2>Code review tracker <span class="count" id="finding-count"></span></h2>
+    <p class="hint">13 findings from <span class="mono">/code-review max</span> on PRs #1–#5. Click an open item to cycle its status — it stays that way for the next person who opens this page.</p>
+
+    <details class="fixed-group">
+      <summary>3 fixed in PR #6</summary>
+      <div id="fixed-list"></div>
+    </details>
+
+    <ul class="findings" id="findings"></ul>
+  </section>
+
+  <footer>
+    <span>State lives in this page — republished on every status change.</span>
+    <span class="msg" id="msg"></span>
+  </footer>
+</div>
+
+<script id="app-script">
+(function(){
+  "use strict";
+
+  var PRS = [
+    {n:1, title:"Add Gemini provider option to financial services agent", date:"2026-09-19"},
+    {n:2, title:"Extend Gemini provider option to remaining domain agents", date:"2026-09-21"},
+    {n:3, title:"Fix Ray multi-agent supply chain agent for real LLM calls", date:"2026-09-21"},
+    {n:4, title:"Fix Redis/Temporal supply chain supervisors and restore Temporal file", date:"2026-09-22"},
+    {n:5, title:"Add orchestration-boundaries diagram (Ray vs Redis vs Temporal)", date:"2026-09-22"},
+    {n:6, title:"Fix Gemini content-list crash, stale lockfile, and doubled tool-call LLM invocations", date:"2026-09-23"}
+  ];
+
+  var FIXED = [
+    {title:"supply_chain_logistics_multi_agent.py crashed with Gemini", detail:"route_to_specialist() and actor_node() treated .content as a plain string; Gemini returns a list of content blocks. Fixed with an as_text() normalizer."},
+    {title:"uv.lock not regenerated after adding langchain-google-genai", detail:"pyproject.toml declared the dependency but the lockfile was stale, so uv sync --locked failed outright. Fixed by regenerating uv.lock."},
+    {title:"Ray/Temporal specialist actors always took the tool-call branch", detail:"hasattr(first, \"tool_calls\") is always True on an AIMessage. Switched to getattr(first, \"tool_calls\", None), doubling LLM calls no more."}
+  ];
+
+  var DEFAULT_FINDINGS = [
+    {id:4,  title:"as_text() duplicates langchain_core's own BaseMessage.text", detail:"Reimplemented across 3 files (ray, redis, temporal) instead of using the built-in property.", status:"open"},
+    {id:5,  title:"build_llm() duplicated near-verbatim across ~19 files", detail:"No shared helper in src/common/ for constructing the LLM client.", status:"open"},
+    {id:6,  title:"Temporal rebuilds the LLM client on every activity call", detail:"specialist_activity constructs a new client per call/retry instead of caching one per worker process (~85ms wasted per call).", status:"open"},
+    {id:7,  title:"customer_support_agent.py startup guard misses GOOGLE_API_KEY", detail:"Only validates OPENAI_API_KEY, even when LLM_PROVIDER=gemini.", status:"open"},
+    {id:8,  title:"build_llm()'s Gemini branch drops streaming/verbose behavior", detail:"Omits callbacks=[StreamingStdOutCallbackHandler()] and verbose=True that the OpenAI branch sets.", status:"open"},
+    {id:9,  title:"Temporal's to_message() silently defaults unknown types to HumanMessage", detail:"A mistyped message dict can silently drop its tool_calls instead of raising.", status:"open"},
+    {id:10, title:"supply_chain_logistics_agent.py hand-instantiates ChatGoogleGenerativeAI", detail:"Its Gemini branch bypasses the init_chat_model() factory already used for OpenAI.", status:"open"},
+    {id:11, title:"Temporal activities call blocking, synchronous .invoke()", detail:"supervisor_activity / specialist_activity have no asyncio.to_thread offload, risking event-loop stalls under concurrency.", status:"open"},
+    {id:12, title:"LLM_PROVIDER read and lower-cased in two places", detail:"Computed independently in the startup guard and in build_llm() instead of once.", status:"open"},
+    {id:13, title:"Two idioms reconstruct a BaseMessage from a dict", detail:"to_message()/_MESSAGE_TYPES in the temporal file vs. a ternary chain in deserialize_messages() in the redis file.", status:"open"}
+  ];
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+    });
+  }
+
+  function loadState(){
+    try{
+      var el = document.getElementById("dashboard-state");
+      if(el && el.textContent.trim()) return JSON.parse(el.textContent);
+    }catch(e){}
+    return {findings: DEFAULT_FINDINGS};
+  }
+
+  var STATE = (window.claude && window.claude.hot && window.claude.hot.data) || loadState();
+
+  function statusLabel(s){
+    return s === "done" ? "done" : s === "investigating" ? "in progress" : "open";
+  }
+  function nextStatus(s){
+    return s === "open" ? "investigating" : s === "investigating" ? "done" : "open";
+  }
+
+  function renderStats(){
+    var done = STATE.findings.filter(function(f){return f.status==="done"}).length;
+    var open = STATE.findings.length - done;
+    var items = [
+      {n: PRS.length, l:"PRs merged", cls:""},
+      {n: FIXED.length + STATE.findings.length, l:"findings reviewed", cls:""},
+      {n: FIXED.length + done, l:"resolved", cls:"good"},
+      {n: open, l:"open follow-ups", cls:"warn"}
+    ];
+    document.getElementById("stats").innerHTML = items.map(function(it){
+      return '<div class="stat"><div class="n tabular '+it.cls+'">'+it.n+'</div><div class="l">'+it.l+'</div></div>';
+    }).join("");
+  }
+
+  function renderPrLog(){
+    document.getElementById("pr-count").textContent = "#1–#"+PRS.length;
+    document.getElementById("prlog").innerHTML = PRS.map(function(pr){
+      return '<li><div class="pr-row">'+
+        '<span class="pr-num">#'+pr.n+'</span>'+
+        '<a class="pr-link" href="https://github.com/jhleeooo/AI-Agent-Engineering/pull/'+pr.n+'" target="_blank" rel="noopener"><span class="pr-title">'+escapeHtml(pr.title)+'</span></a>'+
+        '<span class="pr-date tabular">'+pr.date+'</span>'+
+      '</div></li>';
+    }).join("");
+  }
+
+  function renderFixed(){
+    document.getElementById("fixed-list").innerHTML = FIXED.map(function(f){
+      return '<div class="fixed-item"><span class="chk">✓</span><div><b>'+escapeHtml(f.title)+'</b><p>'+escapeHtml(f.detail)+'</p></div></div>';
+    }).join("");
+  }
+
+  function renderFindings(){
+    document.getElementById("finding-count").textContent = STATE.findings.length + " open follow-ups";
+    document.getElementById("findings").innerHTML = STATE.findings.map(function(f, i){
+      return '<li class="finding" tabindex="0" role="button" aria-pressed="false" data-i="'+i+'">'+
+        '<div class="f-top">'+
+          '<span class="f-num">#'+f.id+'</span>'+
+          '<div class="f-body"><div class="f-title">'+escapeHtml(f.title)+'</div><p class="f-detail">'+escapeHtml(f.detail)+'</p></div>'+
+          '<span class="pill '+f.status+'">'+statusLabel(f.status)+'</span>'+
+        '</div>'+
+      '</li>';
+    }).join("");
+    Array.prototype.forEach.call(document.querySelectorAll(".finding"), function(el){
+      el.addEventListener("click", function(){ toggle(+el.dataset.i); });
+      el.addEventListener("keydown", function(e){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); toggle(+el.dataset.i); } });
+    });
+  }
+
+  function renderAll(){
+    renderStats();
+    renderPrLog();
+    renderFixed();
+    renderFindings();
+  }
+
+  function buildFullDocument(){
+    var pageHtml = document.getElementById("page-root").outerHTML;
+    var stateJson = JSON.stringify(STATE).replace(/</g, "\\u003c");
+    return '<!doctype html><html><head><meta charset="utf8">'+
+      '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'+
+      '<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif;background:#fafafa}img{max-width:100%}[hidden]{display:none!important}</style>'+
+      '</head><body>'+
+      document.querySelector("title").outerHTML +
+      document.querySelector("style").outerHTML +
+      document.querySelector('link[href*="fonts.googleapis"]').outerHTML +
+      pageHtml +
+      '<script id="dashboard-state" type="application/json">'+stateJson+'<\/script>'+
+      '<script>'+ document.getElementById("app-script").textContent + '<\/script>'+
+      '</body></html>';
+  }
+
+  var msgTimer = null;
+  function flashMsg(text){
+    var el = document.getElementById("msg");
+    el.textContent = text;
+    el.classList.add("show");
+    clearTimeout(msgTimer);
+    msgTimer = setTimeout(function(){ el.classList.remove("show"); el.textContent=""; }, 2600);
+  }
+
+  function toggle(i){
+    var prev = STATE.findings[i].status;
+    STATE.findings[i].status = nextStatus(prev);
+    renderAll();
+    persist(i, prev);
+  }
+
+  function persist(i, prevStatus){
+    if(!window.claude || !window.claude.use){ flashMsg("Not saved — viewer runtime unavailable."); return; }
+    claude.use("artifact").then(function(artifact){
+      if(!artifact){ flashMsg("Not saved — this view can't write."); return; }
+      artifact.publish(buildFullDocument()).then(function(){
+        flashMsg("Saved.");
+      }).catch(function(err){
+        STATE.findings[i].status = prevStatus;
+        renderAll();
+        flashMsg(err && err.code === "conflict" ? "Someone else updated this — refresh to see it." : "Not saved — read-only view.");
+      });
+    }).catch(function(){ flashMsg("Not saved — viewer runtime unavailable."); });
+  }
+
+  renderAll();
+
+  if(window.claude && window.claude.hot && typeof window.claude.hot.snapshot === "function"){
+    window.claude.hot.snapshot(function(){ return STATE; });
+  }
+})();
+</script>
