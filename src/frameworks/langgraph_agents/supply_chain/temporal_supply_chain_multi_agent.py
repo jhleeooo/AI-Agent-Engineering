@@ -8,6 +8,7 @@ The workflow sequences agent steps with retries, persistent state, and failure r
 
 import os
 import json
+import asyncio
 from datetime import timedelta
 from typing import Annotated, Sequence, TypedDict, Optional, Dict, Any
 
@@ -15,7 +16,8 @@ from temporalio import workflow, activity
 from temporalio.common import RetryPolicy
 
 from src.common.llm import build_chat_model
-from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
+from src.common.messages import message_from_dict as to_message
+from langchain_core.messages import BaseMessage, SystemMessage
 from langchain_core.messages.tool import ToolMessage
 
 from langchain_core.tools import tool
@@ -163,19 +165,6 @@ llm = build_llm()
 # rebuilding on every call and every Temporal retry.
 _specialist_llm_cache: Dict[str, Any] = {}
 
-_MESSAGE_TYPES = {"human": HumanMessage, "ai": AIMessage, "system": SystemMessage, "tool": ToolMessage}
-
-def to_message(m):
-    """Reconstruct a BaseMessage from its serialized dict (see BaseMessage.dict()) by its own
-    "type" field, not blindly as one fixed class — activity/workflow payloads mix human, ai
-    and tool messages, and Temporal only carries them as plain dicts across the wire."""
-    if not isinstance(m, dict):
-        return m
-    msg_type = m.get("type")
-    if msg_type not in _MESSAGE_TYPES:
-        raise ValueError(f"Unrecognized message type {msg_type!r} in payload: {m!r}")
-    return _MESSAGE_TYPES[msg_type](**m)
-
 class AgentState(TypedDict):
     operation: Optional[dict]  # Supply chain operation information
     messages: Annotated[Sequence[BaseMessage], "add"]
@@ -199,7 +188,7 @@ async def supervisor_activity(operation: Dict[str, Any], messages: list) -> Dict
     )
 
     full = [SystemMessage(content=supervisor_prompt)] + [to_message(m) for m in messages]
-    response = llm.invoke(full)
+    response = await asyncio.to_thread(llm.invoke, full)
     agent_name = response.text.strip().lower()
     return {"agent_name": agent_name, "messages": [response.dict()]}
 
@@ -227,17 +216,17 @@ async def specialist_activity(agent_name: str, operation: Dict[str, Any], messag
     
     full = [SystemMessage(content=full_prompt)] + [to_message(m) for m in messages]
 
-    first = specialist_llm.invoke(full)
+    first = await asyncio.to_thread(specialist_llm.invoke, full)
     result_messages = [first.dict()]
 
     if getattr(first, "tool_calls", None):
         for tc in first.tool_calls:
             fn = tools.get(tc['name'])
             if fn:
-                out = fn.invoke(tc["args"])
+                out = await asyncio.to_thread(fn.invoke, tc["args"])
                 result_messages.append(ToolMessage(content=str(out), tool_call_id=tc["id"]).dict())
 
-        second = specialist_llm.invoke(full + [to_message(msg) for msg in result_messages])
+        second = await asyncio.to_thread(specialist_llm.invoke, full + [to_message(msg) for msg in result_messages])
         result_messages.append(second.dict())
 
     return {"messages": result_messages}

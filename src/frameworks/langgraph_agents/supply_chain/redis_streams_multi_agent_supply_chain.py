@@ -15,7 +15,8 @@ import multiprocessing
 
 import redis
 from src.common.llm import build_chat_model
-from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
+from src.common.messages import messages_from_dicts as deserialize_messages
+from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 from langchain_core.messages.tool import ToolMessage
 
 from langchain_core.tools import tool
@@ -175,10 +176,6 @@ class AgentState(TypedDict):
 # Helper to serialize messages for Redis
 def serialize_messages(messages: Sequence[BaseMessage]) -> list[dict]:
     return [m.dict() for m in messages]
-
-# Helper to deserialize messages from Redis
-def deserialize_messages(serialized: list[dict]) -> Sequence[BaseMessage]:
-    return [HumanMessage(**m) if m['type'] == 'human' else AIMessage(**m) if m['type'] == 'ai' else ToolMessage(**m) if m['type'] == 'tool' else SystemMessage(**m) for m in serialized]
 
 # Supervisor: Determines specialist and publishes task to Redis stream
 def supervisor_publish(operation: dict, messages: Sequence[BaseMessage]) -> str:

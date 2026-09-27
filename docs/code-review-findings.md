@@ -1,6 +1,6 @@
 # Code review findings (`/code-review max` on PRs #1–#5)
 
-Tracking doc in place of GitHub Issues (disabled on this repository). Findings 1–3 were fixed in PR #6. Findings 4–10 are fixed by the commit that updates this file. Findings 11–13 are still open.
+Tracking doc in place of GitHub Issues (disabled on this repository). Findings 1–3 were fixed in PR #6, findings 4–10 in PR #8. All 13 findings are now fixed.
 
 ## Fixed
 
@@ -46,13 +46,16 @@ Tracking doc in place of GitHub Issues (disabled on this repository). Findings 1
     `build_chat_model()` routes both providers through `init_chat_model()` (`model_provider="google_genai"`
     for Gemini), so this file's Gemini branch now goes through the same factory as its OpenAI branch.
 
-## Open follow-ups
-
-11. Temporal's `supervisor_activity`/`specialist_activity` call blocking, synchronous `.invoke()` with
-    no `asyncio.to_thread`/executor offload, risking event-loop stalls under concurrency.
-12. `LLM_PROVIDER` is read and lower-cased independently in two places in the same file (startup guard
-    and `build_llm()`), instead of computed once. (Reading it once per `build_chat_model()` call is no
-    longer duplicated *within* each of the 19 call-site files after #5/#8/#10 — this is now scoped to
-    files, like `customer_support_agent.py`, that also read it in their own startup guard.)
-13. Two different idioms reconstruct a `BaseMessage` from a dict: `to_message()`/`_MESSAGE_TYPES` in the
-    temporal file vs. a ternary chain (`deserialize_messages()`) in the redis file.
+11. **Temporal activities blocked the event loop on synchronous `.invoke()`** — `supervisor_activity` and
+    `specialist_activity` now offload every LLM/tool `.invoke()` call with `await asyncio.to_thread(...)`,
+    so a slow model or tool call no longer stalls the worker's event loop. Verified live: the event loop
+    keeps ticking (a concurrent `asyncio.sleep` loop advances) while a simulated blocking `.invoke()` runs.
+12. **`LLM_PROVIDER` read and lower-cased twice in the same file** — `build_chat_model()` now takes an
+    optional `provider` kwarg; `ch09/agents/customer_support_agent.py` computes `_LLM_PROVIDER` once for
+    its startup guard and passes it straight through (`build_chat_model(provider=_LLM_PROVIDER)`) instead
+    of letting `build_llm()` recompute it.
+13. **Two idioms reconstructed a `BaseMessage` from a dict** — added `src/common/messages.py` with
+    `message_from_dict()`/`messages_from_dicts()` as the one implementation (raises on an unrecognized
+    `"type"`, matching the fix from #9). The temporal file's `to_message` and the redis file's
+    `deserialize_messages` are now both aliases of the shared helper; the redis file's old ternary chain
+    silently fell back to `SystemMessage` for any unrecognized type, so this also fixes that latent bug.
