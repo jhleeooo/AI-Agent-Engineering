@@ -13,6 +13,7 @@ from langchain_core.callbacks.streaming_stdout import StreamingStdOutCallbackHan
 
 def build_chat_model(
     *,
+    provider: str | None = None,
     openai_model: str = "gpt-4o",
     gemini_model_env: str = "GEMINI_MODEL",
     gemini_model_default: str = "gemini-flash-latest",
@@ -23,8 +24,12 @@ def build_chat_model(
     Both branches go through init_chat_model and get the same
     callbacks/verbose treatment, so streaming and logging behavior no
     longer silently differs by provider.
+
+    Pass `provider` when the caller already read/lower-cased LLM_PROVIDER
+    itself (e.g. for a startup guard) so it isn't computed twice.
     """
-    provider = os.getenv("LLM_PROVIDER", "openai").lower()
+    if provider is None:
+        provider = os.getenv("LLM_PROVIDER", "openai").lower()
     callbacks = [StreamingStdOutCallbackHandler()]
     if provider == "gemini":
         return init_chat_model(

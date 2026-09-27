@@ -77,7 +77,7 @@ else:
 
 def build_llm():
     """Build the chat model per LLM_PROVIDER (env var, default "openai")."""
-    return build_chat_model().bind_tools(TOOLS)
+    return build_chat_model(provider=_LLM_PROVIDER).bind_tools(TOOLS)
 
 llm = build_llm()
 
