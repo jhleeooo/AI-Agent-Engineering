@@ -14,11 +14,9 @@ from typing import Annotated, Sequence, TypedDict, Optional, Dict, Any
 from temporalio import workflow, activity
 from temporalio.common import RetryPolicy
 
-from langchain_openai.chat_models import ChatOpenAI
-from langchain_google_genai import ChatGoogleGenerativeAI
+from src.common.llm import build_chat_model
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
 from langchain_core.messages.tool import ToolMessage
-from langchain_core.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 
 from langchain_core.tools import tool
 from temporalio.client import Client
@@ -156,24 +154,14 @@ Traceloop.init(disable_batch=True, app_name="supply_chain_logistics_agent_tempor
 
 def build_llm():
     """Build the base chat model per LLM_PROVIDER (env var, default "openai"). Per-role tool bindings are applied by callers."""
-    provider = os.getenv("LLM_PROVIDER", "openai").lower()
-    if provider == "gemini":
-        return ChatGoogleGenerativeAI(
-            model=os.getenv("GEMINI_MODEL", "gemini-flash-latest"),
-            temperature=0.0,
-        )
-    return ChatOpenAI(
-        model="gpt-4o", temperature=0.0,
-        callbacks=[StreamingStdOutCallbackHandler()], verbose=True,
-    )
+    return build_chat_model()
 
 llm = build_llm()
 
-def as_text(content) -> str:
-    """Normalize AIMessage.content to plain text (Gemini returns a list of content blocks; OpenAI returns str)."""
-    if isinstance(content, list):
-        return "".join(part.get("text", "") if isinstance(part, dict) else str(part) for part in content)
-    return content
+# Per-worker-process cache: build_llm() constructs a new HTTP client and does
+# provider setup, so activities reuse one instance per agent_name instead of
+# rebuilding on every call and every Temporal retry.
+_specialist_llm_cache: Dict[str, Any] = {}
 
 _MESSAGE_TYPES = {"human": HumanMessage, "ai": AIMessage, "system": SystemMessage, "tool": ToolMessage}
 
@@ -183,7 +171,10 @@ def to_message(m):
     and tool messages, and Temporal only carries them as plain dicts across the wire."""
     if not isinstance(m, dict):
         return m
-    return _MESSAGE_TYPES.get(m.get("type"), HumanMessage)(**m)
+    msg_type = m.get("type")
+    if msg_type not in _MESSAGE_TYPES:
+        raise ValueError(f"Unrecognized message type {msg_type!r} in payload: {m!r}")
+    return _MESSAGE_TYPES[msg_type](**m)
 
 class AgentState(TypedDict):
     operation: Optional[dict]  # Supply chain operation information
@@ -209,7 +200,7 @@ async def supervisor_activity(operation: Dict[str, Any], messages: list) -> Dict
 
     full = [SystemMessage(content=supervisor_prompt)] + [to_message(m) for m in messages]
     response = llm.invoke(full)
-    agent_name = as_text(response.content).strip().lower()
+    agent_name = response.text.strip().lower()
     return {"agent_name": agent_name, "messages": [response.dict()]}
 
 @activity.defn
@@ -225,7 +216,9 @@ async def specialist_activity(agent_name: str, operation: Dict[str, Any], messag
         raise ValueError(f"Unknown agent: {agent_name}")
 
     role_tools = tools_dict[agent_name]
-    specialist_llm = build_llm().bind_tools(role_tools)
+    if agent_name not in _specialist_llm_cache:
+        _specialist_llm_cache[agent_name] = build_llm().bind_tools(role_tools)
+    specialist_llm = _specialist_llm_cache[agent_name]
     tools = {t.name: t for t in role_tools}
     system_prompt = prompts[agent_name]
     

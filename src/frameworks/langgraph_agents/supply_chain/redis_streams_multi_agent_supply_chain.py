@@ -14,11 +14,9 @@ from typing import Annotated, Sequence, TypedDict, Optional
 import multiprocessing
 
 import redis
-from langchain_openai.chat_models import ChatOpenAI
-from langchain_google_genai import ChatGoogleGenerativeAI
+from src.common.llm import build_chat_model
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
 from langchain_core.messages.tool import ToolMessage
-from langchain_core.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 
 from langchain_core.tools import tool
 from langgraph.graph import StateGraph, END
@@ -161,24 +159,9 @@ Traceloop.init(disable_batch=True, app_name="supply_chain_logistics_agent_redis"
 
 def build_llm():
     """Build the base chat model per LLM_PROVIDER (env var, default "openai"). Per-role tool bindings are applied by callers."""
-    provider = os.getenv("LLM_PROVIDER", "openai").lower()
-    if provider == "gemini":
-        return ChatGoogleGenerativeAI(
-            model=os.getenv("GEMINI_MODEL", "gemini-flash-latest"),
-            temperature=0.0,
-        )
-    return ChatOpenAI(
-        model="gpt-4o", temperature=0.0,
-        callbacks=[StreamingStdOutCallbackHandler()], verbose=True,
-    )
+    return build_chat_model()
 
 llm = build_llm()
-
-def as_text(content) -> str:
-    """Normalize AIMessage.content to plain text (Gemini returns a list of content blocks; OpenAI returns str)."""
-    if isinstance(content, list):
-        return "".join(part.get("text", "") if isinstance(part, dict) else str(part) for part in content)
-    return content
 
 # Bind tools to specialized LLMs
 inventory_llm = llm.bind_tools(INVENTORY_TOOLS)
@@ -216,7 +199,7 @@ def supervisor_publish(operation: dict, messages: Sequence[BaseMessage]) -> str:
     full = [SystemMessage(content=supervisor_prompt)] + messages
     response = llm.invoke(full)
     
-    agent_name = as_text(response.content).strip().lower()
+    agent_name = response.text.strip().lower()
     
     r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
     task_id = str(uuid.uuid4())
