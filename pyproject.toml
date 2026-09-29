@@ -27,6 +27,7 @@ dependencies = [
     "vectordb2>=0.1.9",
     "tensorflow-hub>=0.16.1",
     "backoff>=2.2.1",
+    "temporalio>=1.7.0",
 ]
 
 [project.optional-dependencies]
