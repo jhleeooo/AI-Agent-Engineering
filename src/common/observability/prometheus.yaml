@@ -1,0 +1,10 @@
+# Scrapes the Temporal worker's SDK metrics (see temporal_metrics.py).
+# The worker runs on the host, so the container reaches it through
+# host.docker.internal (mapped in docker-compose.yaml for Linux too).
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: temporal-worker
+    static_configs:
+      - targets: ["host.docker.internal:9464"]

@@ -26,6 +26,7 @@ from temporalio.worker import Worker
 
 from traceloop.sdk import Traceloop
 from src.common.observability.loki_logger import log_to_loki
+from src.common.observability.temporal_metrics import build_temporal_runtime
 
 os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = "http://localhost:4317"
 os.environ["OTEL_EXPORTER_OTLP_INSECURE"] = "true"
@@ -301,7 +302,8 @@ tools_dict = {
 }
 
 async def main():
-    client = await Client.connect("localhost:7233")
+    # Serves Temporal SDK metrics for Prometheus (TEMPORAL_METRICS_ADDR, default :9464)
+    client = await Client.connect("localhost:7233", runtime=build_temporal_runtime())
     # Start worker
     async with Worker(client, task_queue="supply-chain-queue", workflows=[SupplyChainWorkflow], activities=[supervisor_activity, specialist_activity]):
         # Example execution
