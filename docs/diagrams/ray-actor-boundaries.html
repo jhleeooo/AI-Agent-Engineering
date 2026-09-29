@@ -1,0 +1,353 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Ray Actor Boundaries</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f5f7;
+    --surface: #ffffff;
+    --surface-2: #eceef2;
+    --surface-3: #e2e5eb;
+    --border: #d3d7de;
+    --ink: #1b1f27;
+    --ink-dim: #5c6473;
+    --ink-faint: #8890a0;
+    --accent: #b5601e;
+    --accent-soft: #b5601e1a;
+    --accent-line: #b5601e66;
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12151b;
+      --surface: #1a1e26;
+      --surface-2: #20252e;
+      --surface-3: #262c37;
+      --border: #333a47;
+      --ink: #e7e9ee;
+      --ink-dim: #9aa2b1;
+      --ink-faint: #6b7383;
+      --accent: #e0912f;
+      --accent-soft: #e0912f22;
+      --accent-line: #e0912f88;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12151b;
+    --surface: #1a1e26;
+    --surface-2: #20252e;
+    --surface-3: #262c37;
+    --border: #333a47;
+    --ink: #e7e9ee;
+    --ink-dim: #9aa2b1;
+    --ink-faint: #6b7383;
+    --accent: #e0912f;
+    --accent-soft: #e0912f22;
+    --accent-line: #e0912f88;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Public Sans", -apple-system, "Segoe UI", sans-serif;
+    padding-inline: 20px;
+    padding-block: 40px;
+    display: flex;
+    justify-content: center;
+  }
+  main {
+    width: 100%;
+    max-width: 980px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+  .topline {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .kicker {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  h1 {
+    font-size: clamp(26px, 4vw, 34px);
+    line-height: 1.15;
+    margin: 6px 0 0;
+    font-weight: 700;
+    text-wrap: balance;
+  }
+  .dek {
+    font-size: 16px;
+    line-height: 1.55;
+    color: var(--ink-dim);
+    max-width: 68ch;
+    margin: 0;
+  }
+  .dek code, p code, li code, figcaption code, section.note code {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.92em;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.05em 0.35em;
+  }
+
+  figure {
+    margin: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 20px 16px;
+    flex: none;
+    overflow-x: auto;
+  }
+  svg { width: 100%; min-width: 640px; height: auto; display: block; overflow: visible; }
+  figcaption {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--ink-dim);
+  }
+  figcaption strong { color: var(--ink); font-weight: 600; }
+  figcaption .accent { color: var(--accent); font-weight: 600; }
+
+  .keyline {
+    display: flex;
+    gap: 10px 22px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: var(--ink-dim);
+  }
+  .keyline .key { display: inline-flex; align-items: center; gap: 7px; min-width: 0; }
+  .swatch { width: 12px; height: 12px; border-radius: 3px; flex: none; }
+  .swatch.boundary { border: 1.5px dashed var(--ink-faint); background: transparent; }
+  .swatch.fix { background: var(--accent); }
+  .swatch.actor { background: var(--surface-3); border: 1px solid var(--border); }
+
+  section.note {
+    font-size: 14.5px;
+    line-height: 1.65;
+    color: var(--ink-dim);
+    border-left: 3px solid var(--accent-line);
+    padding: 4px 0 4px 16px;
+  }
+  section.note strong { color: var(--ink); }
+
+  /* Language toggle: checkbox is a sibling of main, ~ combinator switches .en/.ko */
+  #lang-toggle { position: absolute; opacity: 0; pointer-events: none; }
+  .lang-switch {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    color: var(--ink);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 14px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .lang-switch:hover { border-color: var(--accent); }
+  #lang-toggle:focus-visible ~ main .lang-switch { outline: 2px solid var(--accent); outline-offset: 2px; }
+  main .ko { display: none; }
+  main .en { display: inline; }
+  #lang-toggle:checked ~ main .en { display: none; }
+  #lang-toggle:checked ~ main .ko { display: inline; }
+  .ko, text.ko { font-family: "Noto Sans KR", "Public Sans", sans-serif; }
+</style>
+
+<input type="checkbox" id="lang-toggle">
+<main>
+  <div class="topline">
+    <div>
+      <div class="kicker">ray_supply_chain_multi_agent.py</div>
+      <h1><span class="en">Why the LLM has to be built inside the actor</span><span class="ko">LLM은 왜 액터 안에서 만들어야 하는가</span></h1>
+    </div>
+    <label class="lang-switch" for="lang-toggle"><span class="en">한국어로 보기</span><span class="ko">View in English</span></label>
+  </div>
+
+  <p class="dek">
+    <span class="en"><code>supervisor_invoke()</code> crosses two OS process boundaries to answer one supply-chain
+    request. Ray can only carry plain, picklable data across those boundaries — so the bound,
+    tool-calling LLM client is never passed in; each <code>SpecialistActor</code> builds its own
+    the moment it starts.</span>
+    <span class="ko"><code>supervisor_invoke()</code>는 공급망 요청 하나에 답하기 위해 OS 프로세스 경계를 두 번 넘습니다.
+    Ray는 그 경계를 넘길 때 평범하고 pickle 가능한 데이터만 실을 수 있어서, 도구가 바인딩된 LLM 클라이언트는
+    넘기지 않습니다. 각 <code>SpecialistActor</code>가 시작하는 순간 자기 것을 직접 만듭니다.</span>
+  </p>
+
+  <figure>
+    <svg viewBox="0 0 1040 560" role="img" aria-label="Diagram of a request flowing from the driver process through a SessionManager Ray actor to a per-session SpecialistActor, showing that the LLM client is constructed inside the SpecialistActor after the process boundary rather than passed across it.">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+        </marker>
+        <marker id="arrowAccent" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/>
+        </marker>
+      </defs>
+
+      <!-- column bands -->
+      <rect x="16" y="8" width="308" height="544" rx="10" fill="var(--surface-2)"/>
+      <rect x="356" y="8" width="308" height="544" rx="10" fill="var(--surface-2)"/>
+      <rect x="696" y="8" width="308" height="544" rx="10" fill="var(--surface-2)"/>
+
+      <!-- process boundary lines -->
+      <line x1="340" y1="8" x2="340" y2="552" stroke="var(--ink-faint)" stroke-width="1.5" stroke-dasharray="4 5"/>
+      <line x1="680" y1="8" x2="680" y2="552" stroke="var(--ink-faint)" stroke-width="1.5" stroke-dasharray="4 5"/>
+
+      <!-- column labels -->
+      <text class="en" x="170" y="32" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12.5" font-weight="600" fill="var(--ink-dim)" letter-spacing="0.04em">DRIVER PROCESS</text>
+      <text class="ko" x="170" y="32" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12.5" font-weight="600" fill="var(--ink-dim)" letter-spacing="0.04em">드라이버 프로세스</text>
+      <text class="en" x="510" y="32" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12.5" font-weight="600" fill="var(--ink-dim)" letter-spacing="0.04em">SessionManager ACTOR</text>
+      <text class="ko" x="510" y="32" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12.5" font-weight="600" fill="var(--ink-dim)" letter-spacing="0.04em">SessionManager 액터</text>
+      <text x="850" y="32" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12.5" font-weight="600" fill="var(--ink-dim)" letter-spacing="0.04em">SpecialistActor</text>
+      <text class="en" x="510" y="47" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--ink-faint)">(one, long-lived)</text>
+      <text class="ko" x="510" y="47" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--ink-faint)">(하나, 장기 유지)</text>
+      <text class="en" x="850" y="47" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--ink-faint)">(one per session_id + role)</text>
+      <text class="ko" x="850" y="47" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--ink-faint)">(session_id + 역할마다 하나)</text>
+
+      <!-- COL 1 -->
+      <rect x="36" y="62" width="268" height="52" rx="8" fill="var(--surface)" stroke="var(--border)"/>
+      <text class="en" x="170" y="83" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">User query</text>
+      <text class="ko" x="170" y="83" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">사용자 질의</text>
+      <text x="170" y="101" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--ink-dim)">operation{ operation_id, … }</text>
+      <rect x="36" y="134" width="268" height="66" rx="8" fill="var(--surface)" stroke="var(--border)"/>
+      <text class="en" x="170" y="155" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">Supervisor</text>
+      <text class="ko" x="170" y="155" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">슈퍼바이저</text>
+      <text x="170" y="173" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--ink-dim)">llm.invoke(routing prompt)</text>
+      <text x="170" y="188" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--ink-dim)">→ agent_name</text>
+      <rect x="36" y="228" width="268" height="48" rx="8" fill="var(--surface)" stroke="var(--border)" stroke-dasharray="3 4"/>
+      <text class="en" x="170" y="247" text-anchor="middle" font-size="12" fill="var(--ink)">driver now holds</text>
+      <text class="ko" x="170" y="247" text-anchor="middle" font-size="12" fill="var(--ink)">드라이버가 이제 보유</text>
+      <text x="170" y="263" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--ink-dim)">actor: ActorHandle</text>
+      <rect x="36" y="486" width="268" height="50" rx="8" fill="var(--surface)" stroke="var(--border)"/>
+      <text class="en" x="170" y="507" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">Result</text>
+      <text class="ko" x="170" y="507" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">결과</text>
+      <text x="170" y="524" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--ink-dim)">{ &quot;messages&quot;: [ …, final ] }</text>
+
+      <!-- COL 2 -->
+      <rect x="376" y="62" width="268" height="60" rx="8" fill="var(--surface)" stroke="var(--border)"/>
+      <text x="510" y="82" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">sessions{ }</text>
+      <text x="510" y="99" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--ink-dim)">session_id → {agent_name: handle}</text>
+      <text class="en" x="510" y="140" text-anchor="middle" font-size="11.5" fill="var(--ink-dim)">reuse if it exists;</text>
+      <text class="ko" x="510" y="140" text-anchor="middle" font-size="11.5" fill="var(--ink-dim)">이미 있으면 재사용하고,</text>
+      <text class="en" x="510" y="156" text-anchor="middle" font-size="11.5" fill="var(--ink-dim)">spawn only the first time</text>
+      <text class="ko" x="510" y="156" text-anchor="middle" font-size="11.5" fill="var(--ink-dim)">처음 한 번만 생성</text>
+      <text class="en" x="510" y="330" text-anchor="middle" font-size="11" font-style="italic" fill="var(--ink-faint)">(not involved again once the</text>
+      <text class="ko" x="510" y="330" text-anchor="middle" font-size="11" font-style="italic" fill="var(--ink-faint)">(드라이버가 액터 핸들을</text>
+      <text class="en" x="510" y="346" text-anchor="middle" font-size="11" font-style="italic" fill="var(--ink-faint)">driver holds the actor handle)</text>
+      <text class="ko" x="510" y="346" text-anchor="middle" font-size="11" font-style="italic" fill="var(--ink-faint)">쥐고 나면 다시 관여하지 않음)</text>
+
+      <!-- COL 3 -->
+      <rect x="716" y="62" width="268" height="70" rx="8" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+      <text x="850" y="83" text-anchor="middle" font-size="13" font-weight="700" fill="var(--accent)">__init__</text>
+      <text x="850" y="101" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--ink)">llm = build_llm()</text>
+      <text x="850" y="116" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--ink)" xml:space="preserve">        .bind_tools(tools)</text>
+      <rect x="716" y="182" width="268" height="90" rx="8" fill="var(--surface)" stroke="var(--border)"/>
+      <text x="850" y="203" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">process_task(operation, messages)</text>
+      <text x="850" y="221" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--ink-dim)">1  llm.invoke → tool_calls</text>
+      <text x="850" y="237" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--ink-dim)">2  run the tool, locally</text>
+      <text x="850" y="253" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--ink-dim)">3  llm.invoke → final message</text>
+      <rect x="716" y="296" width="268" height="50" rx="8" fill="var(--surface)" stroke="var(--border)"/>
+      <text x="850" y="317" text-anchor="middle" font-size="12" fill="var(--ink)">internal_state{ }</text>
+      <text class="en" x="850" y="334" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--ink-dim)">isolated per session_id</text>
+      <text class="ko" x="850" y="334" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--ink-dim)">session_id별로 격리</text>
+
+      <!-- arrow 1 -->
+      <path d="M 304,178 L 372,95" fill="none" stroke="var(--ink-dim)" stroke-width="1.6" marker-end="url(#arrow)"/>
+      <text x="338" y="118" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="600" fill="var(--ink)">①</text>
+      <text x="345" y="230" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--ink-dim)">get_or_create_actor.remote(</text>
+      <text x="345" y="243" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--ink-dim)" xml:space="preserve">  session_id, agent_name,</text>
+      <text x="345" y="256" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--ink-dim)" xml:space="preserve">  tools, prompt)</text>
+
+      <!-- arrow 2 -->
+      <path d="M 644,95 L 712,95" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-dasharray="1 5" stroke-linecap="round" marker-end="url(#arrowAccent)"/>
+      <text x="678" y="82" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="600" fill="var(--accent)">②</text>
+      <text x="692" y="150" text-anchor="middle" font-size="10" fill="var(--ink-dim)">SpecialistActor.remote(</text>
+      <text x="692" y="163" text-anchor="middle" font-size="10" fill="var(--ink-dim)">agent_name, tools, prompt)</text>
+      <text class="en" x="692" y="178" text-anchor="middle" font-size="10" font-style="italic" fill="var(--ink-faint)">spawns a new process — first call only</text>
+      <text class="ko" x="692" y="178" text-anchor="middle" font-size="10" font-style="italic" fill="var(--ink-faint)">새 프로세스 생성 — 첫 호출에만</text>
+
+      <!-- arrow 3 -->
+      <path d="M 372,180 L 304,252" fill="none" stroke="var(--ink-dim)" stroke-width="1.6" marker-end="url(#arrow)"/>
+      <text x="338" y="205" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="600" fill="var(--ink)">③</text>
+      <text x="345" y="292" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--ink-dim)">→ actor: ActorHandle</text>
+
+      <!-- arrow 4 -->
+      <path d="M 304,395 L 712,395" fill="none" stroke="var(--ink-dim)" stroke-width="1.6" marker-end="url(#arrow)"/>
+      <text x="510" y="386" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="600" fill="var(--ink)">④</text>
+      <text x="380" y="415" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--ink-dim)">actor.process_task.remote(operation, messages)</text>
+      <text class="en" x="380" y="430" font-size="10" font-style="italic" fill="var(--ink-faint)">direct — SessionManager isn&#x27;t involved again</text>
+      <text class="ko" x="380" y="430" font-size="10" font-style="italic" fill="var(--ink-faint)">직접 호출 — SessionManager는 더 이상 관여하지 않음</text>
+
+      <!-- arrow 5 -->
+      <path d="M 712,455 L 304,455" fill="none" stroke="var(--ink-dim)" stroke-width="1.6" marker-end="url(#arrow)"/>
+      <text x="510" y="446" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="600" fill="var(--ink)">⑤</text>
+      <text x="510" y="474" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--ink-dim)">→ result = { &quot;messages&quot;: […] }</text>
+
+      <!-- connectors -->
+      <line x1="170" y1="276" x2="170" y2="395" stroke="var(--ink-faint)" stroke-width="1.3" stroke-dasharray="2 4"/>
+      <line x1="170" y1="455" x2="170" y2="486" stroke="var(--ink-faint)" stroke-width="1.3" stroke-dasharray="2 4"/>
+      <line x1="850" y1="272" x2="850" y2="395" stroke="var(--ink-faint)" stroke-width="1.3" stroke-dasharray="2 4"/>
+      <line x1="850" y1="346" x2="850" y2="455" stroke="var(--ink-faint)" stroke-width="1.3" stroke-dasharray="2 4"/>
+    </svg>
+
+    <figcaption>
+      <span class="en"><strong>①③</strong> the driver only ever asks the SessionManager for a handle — a small,
+      picklable reference — never for a running LLM. <strong>②</strong> the SessionManager spawns a
+      new <code>SpecialistActor</code> process only the first time a given session and role are
+      seen; after that it's reused, so its <code>internal_state</code> persists across turns.
+      <strong>④⑤</strong> every later call from that request goes straight from the driver to the
+      specialist — the SessionManager is a directory, not a relay. The line that used to break this:
+      a caller building <code>llm.bind_tools(tools)</code> in the driver and passing that live object
+      into <span class="accent">step ②</span>. Ray serializes actor-call arguments with cloudpickle,
+      and a bound LLM holds an open HTTP client — sockets, locks — that cloudpickle can't reconstruct
+      on the other side. The fix moves that call inside <code>SpecialistActor.__init__</code>
+      (highlighted), so the client is born already on the correct side of the boundary.</span>
+      <span class="ko"><strong>①③</strong> 드라이버는 SessionManager에게 핸들, 즉 작고 pickle 가능한 참조만 요청하며,
+      실행 중인 LLM은 절대 요청하지 않습니다. <strong>②</strong> SessionManager는 해당 세션과 역할을 처음 볼 때만
+      새 <code>SpecialistActor</code> 프로세스를 만듭니다. 이후에는 재사용하므로 <code>internal_state</code>가
+      턴을 넘어 유지됩니다. <strong>④⑤</strong> 그 요청의 이후 모든 호출은 드라이버에서 전문가로 바로 갑니다.
+      SessionManager는 중계자가 아니라 디렉터리입니다. 예전에 이 구조를 깨던 코드는 드라이버에서
+      <code>llm.bind_tools(tools)</code>를 만들고 그 살아 있는 객체를 <span class="accent">②단계</span>로 넘기는
+      호출자였습니다. Ray는 액터 호출 인자를 cloudpickle로 직렬화하는데, 바인딩된 LLM은 열린 HTTP
+      클라이언트(소켓, 락)를 갖고 있어 cloudpickle이 반대편에서 복원할 수 없습니다. 수정은 이 호출을
+      <code>SpecialistActor.__init__</code> 안으로 옮겨(강조 표시) 클라이언트가 처음부터 올바른 경계 쪽에서
+      만들어지게 한 것입니다.</span>
+    </figcaption>
+  </figure>
+
+  <div class="keyline">
+    <span class="key"><i class="swatch boundary"></i><span class="en">process boundary — arguments must be picklable to cross it</span><span class="ko">프로세스 경계 — 넘기려면 인자가 pickle 가능해야 함</span></span>
+    <span class="key"><i class="swatch fix"></i><span class="en">where the LLM client is actually constructed</span><span class="ko">LLM 클라이언트가 실제로 만들어지는 곳</span></span>
+    <span class="key"><i class="swatch actor"></i><span class="en">long-lived Ray actor state</span><span class="ko">장기 유지되는 Ray 액터 상태</span></span>
+  </div>
+
+  <section class="note">
+    <span class="en"><strong>Why this isn't Gemini-specific.</strong> <code>ChatOpenAI</code> holds the same kind of
+    live HTTP client once it's used. The bug was invisible before because a separate import error
+    kept this file from ever reaching a real LLM call — so it was never actually run, with any
+    provider, until now.</span>
+    <span class="ko"><strong>Gemini에만 해당하는 문제가 아닙니다.</strong> <code>ChatOpenAI</code>도 한 번 사용하면
+    같은 종류의 살아 있는 HTTP 클라이언트를 갖습니다. 이 버그가 보이지 않았던 이유는 별도의 import 오류 때문에
+    이 파일이 실제 LLM 호출까지 도달한 적이 없었기 때문입니다. 즉 어떤 제공자로도 지금까지 실행된 적이 없었습니다.</span>
+  </section>
+</main>
+
+</body></html>

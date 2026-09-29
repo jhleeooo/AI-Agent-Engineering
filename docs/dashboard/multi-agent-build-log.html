@@ -1,3 +1,4 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Multi-Agent Build Log</title>
 <style>
   :root{
@@ -121,34 +122,51 @@
   footer .msg{min-height:1.4em}
   footer .msg.show{color:var(--accent-ink)}
 
+  /* Language toggle: checkbox is a sibling of .wrap, ~ combinator switches .en/.ko */
+  #lang-toggle{position:absolute;opacity:0;pointer-events:none}
+  .toprow{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .lang-switch{flex:none;font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.02em;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 14px;cursor:pointer;user-select:none}
+  .lang-switch:hover{border-color:var(--accent)}
+  #lang-toggle:focus-visible ~ .wrap .lang-switch{outline:2px solid var(--accent);outline-offset:2px}
+  .wrap .ko{display:none}
+  .wrap .en{display:inline}
+  #lang-toggle:checked ~ .wrap .en{display:none}
+  #lang-toggle:checked ~ .wrap .ko{display:inline}
+  .ko{font-family:"Noto Sans KR","IBM Plex Sans",system-ui,sans-serif}
+
   @media (max-width:520px){
     .stats{grid-template-columns:repeat(2,1fr)}
     .pr-date{margin-left:0}
   }
 </style>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
 
-<div class="wrap" id="page-root">
+<div id="page-root">
+<input type="checkbox" id="lang-toggle">
+<div class="wrap">
   <header class="top">
-    <span class="eyebrow">jhleeooo / AI-Agent-Engineering</span>
-    <h1>Multi-agent build log</h1>
-    <p class="sub">Pull-request history and the <code>/code-review max</code> findings tracker for the Ray / Redis Streams / Temporal supply-chain agents. GitHub Issues is disabled on this repo, so this board is the record.</p>
+    <div class="toprow">
+      <span class="eyebrow">jhleeooo / AI-Agent-Engineering</span>
+      <label class="lang-switch" for="lang-toggle"><span class="en">한국어로 보기</span><span class="ko">View in English</span></label>
+    </div>
+    <h1><span class="en">Multi-agent build log</span><span class="ko">멀티 에이전트 빌드 로그</span></h1>
+    <p class="sub"><span class="en">Pull-request history and the <code>/code-review max</code> findings tracker for the Ray / Redis Streams / Temporal supply-chain agents. GitHub Issues is disabled on this repo, so this board is the record.</span><span class="ko">Ray / Redis Streams / Temporal 공급망 에이전트의 풀 리퀘스트 이력과 <code>/code-review max</code> 지적 사항 트래커입니다. 이 저장소는 GitHub Issues가 비활성화되어 있어서 이 보드가 기록을 대신합니다.</span></p>
   </header>
 
   <div class="stats" id="stats"></div>
 
   <section>
-    <h2>Pull request log <span class="count" id="pr-count"></span></h2>
-    <p class="hint">Squash-merged onto <span class="mono">main</span>, oldest first.</p>
+    <h2><span><span class="en">Pull request log</span><span class="ko">풀 리퀘스트 로그</span></span> <span class="count" id="pr-count"></span></h2>
+    <p class="hint"><span class="en">Squash-merged onto <span class="mono">main</span>, oldest first.</span><span class="ko"><span class="mono">main</span>에 squash 머지한 순서대로, 오래된 것부터.</span></p>
     <ul class="prlog" id="prlog"></ul>
   </section>
 
   <section>
-    <h2>Code review tracker <span class="count" id="finding-count"></span></h2>
-    <p class="hint">13 findings from <span class="mono">/code-review max</span> on PRs #1–#5. Click an open item to cycle its status — it stays that way for the next person who opens this page.</p>
+    <h2><span><span class="en">Code review tracker</span><span class="ko">코드 리뷰 트래커</span></span> <span class="count" id="finding-count"></span></h2>
+    <p class="hint"><span class="en">13 findings from <span class="mono">/code-review max</span> on PRs #1–#5. Click an open item to cycle its status — it stays that way for the next person who opens this page.</span><span class="ko">PR #1–#5에 대한 <span class="mono">/code-review max</span> 지적 13건. 항목을 클릭하면 상태가 순서대로 바뀌고, 다음에 이 페이지를 여는 사람에게도 그대로 유지됩니다.</span></p>
 
     <details class="fixed-group">
-      <summary>3 fixed in PR #6</summary>
+      <summary><span class="en">3 fixed in PR #6</span><span class="ko">PR #6에서 3건 수정</span></summary>
       <div id="fixed-list"></div>
     </details>
 
@@ -156,9 +174,10 @@
   </section>
 
   <footer>
-    <span>State lives in this page — republished on every status change.</span>
+    <span><span class="en">State lives in this page — republished on every status change.</span><span class="ko">상태는 이 페이지 안에 저장되며, 상태가 바뀔 때마다 다시 게시됩니다.</span></span>
     <span class="msg" id="msg"></span>
   </footer>
+</div>
 </div>
 
 <script id="app-script">
@@ -174,11 +193,39 @@
     {n:6, title:"Fix Gemini content-list crash, stale lockfile, and doubled tool-call LLM invocations", date:"2026-09-23"}
   ];
 
+  var PR_KO = {
+    1:"금융 서비스 에이전트에 Gemini 제공자 옵션 추가",
+    2:"나머지 도메인 에이전트에도 Gemini 제공자 옵션 확장",
+    3:"실제 LLM 호출이 되도록 Ray 멀티 에이전트 공급망 에이전트 수정",
+    4:"Redis/Temporal 공급망 슈퍼바이저 수정 및 Temporal 파일 복원",
+    5:"orchestration-boundaries 다이어그램 추가 (Ray vs Redis vs Temporal)",
+    6:"Gemini content 리스트 크래시, 오래된 락파일, 중복된 tool-call LLM 호출 수정"
+  };
+
   var FIXED = [
     {title:"supply_chain_logistics_multi_agent.py crashed with Gemini", detail:"route_to_specialist() and actor_node() treated .content as a plain string; Gemini returns a list of content blocks. Fixed with an as_text() normalizer."},
     {title:"uv.lock not regenerated after adding langchain-google-genai", detail:"pyproject.toml declared the dependency but the lockfile was stale, so uv sync --locked failed outright. Fixed by regenerating uv.lock."},
     {title:"Ray/Temporal specialist actors always took the tool-call branch", detail:"hasattr(first, \"tool_calls\") is always True on an AIMessage. Switched to getattr(first, \"tool_calls\", None), doubling LLM calls no more."}
   ];
+
+  var FIXED_KO = [
+    {title:"supply_chain_logistics_multi_agent.py가 Gemini에서 크래시", detail:"route_to_specialist()와 actor_node()가 .content를 단순 문자열로 취급했지만 Gemini는 content 블록 리스트를 반환합니다. as_text() 정규화 함수로 수정했습니다."},
+    {title:"langchain-google-genai 추가 후 uv.lock 미갱신", detail:"pyproject.toml에는 의존성이 선언됐지만 락파일이 오래되어 uv sync --locked가 아예 실패했습니다. uv.lock을 재생성해 수정했습니다."},
+    {title:"Ray/Temporal 전문가 액터가 항상 tool-call 분기를 탐", detail:"hasattr(first, \"tool_calls\")는 AIMessage에서 항상 True입니다. getattr(first, \"tool_calls\", None)로 바꿔 LLM 호출이 두 배가 되던 문제를 없앴습니다."}
+  ];
+
+  var FINDING_KO = {
+    4:{title:"as_text()가 langchain_core의 BaseMessage.text를 중복 구현", detail:"내장 프로퍼티를 쓰지 않고 3개 파일(ray, redis, temporal)에 각각 다시 구현했습니다."},
+    5:{title:"build_llm()이 약 19개 파일에 거의 그대로 중복", detail:"LLM 클라이언트를 만드는 공용 헬퍼가 src/common/에 없습니다."},
+    6:{title:"Temporal이 활동 호출마다 LLM 클라이언트를 다시 생성", detail:"specialist_activity가 워커 프로세스당 하나를 캐시하지 않고 호출/재시도마다 새 클라이언트를 만듭니다(호출당 약 85ms 낭비)."},
+    7:{title:"customer_support_agent.py 시작 검사가 GOOGLE_API_KEY를 놓침", detail:"LLM_PROVIDER=gemini일 때도 OPENAI_API_KEY만 검사합니다."},
+    8:{title:"build_llm()의 Gemini 분기에서 스트리밍/verbose 동작 누락", detail:"OpenAI 분기가 설정하는 callbacks=[StreamingStdOutCallbackHandler()]와 verbose=True가 빠져 있습니다."},
+    9:{title:"Temporal의 to_message()가 알 수 없는 타입을 조용히 HumanMessage로 처리", detail:"타입이 잘못된 메시지 dict가 예외 없이 tool_calls를 잃을 수 있습니다."},
+    10:{title:"supply_chain_logistics_agent.py가 ChatGoogleGenerativeAI를 직접 인스턴스화", detail:"Gemini 분기가 OpenAI에 이미 쓰이는 init_chat_model() 팩토리를 우회합니다."},
+    11:{title:"Temporal 활동이 블로킹 동기 .invoke()를 호출", detail:"supervisor_activity / specialist_activity에 asyncio.to_thread 오프로드가 없어 동시 실행 시 이벤트 루프가 멈출 수 있습니다."},
+    12:{title:"LLM_PROVIDER를 두 곳에서 읽고 소문자로 변환", detail:"시작 검사와 build_llm()이 한 번만 계산하지 않고 각자 계산합니다."},
+    13:{title:"BaseMessage를 dict에서 복원하는 방식이 두 가지", detail:"temporal 파일의 to_message()/_MESSAGE_TYPES와 redis 파일의 deserialize_messages() 삼항 체인이 따로 있습니다."}
+  };
 
   var DEFAULT_FINDINGS = [
     {id:4,  title:"as_text() duplicates langchain_core's own BaseMessage.text", detail:"Reimplemented across 3 files (ray, redis, temporal) instead of using the built-in property.", status:"open"},
@@ -199,6 +246,15 @@
     });
   }
 
+  function bi(en, ko){
+    return '<span class="en">'+escapeHtml(en)+'</span><span class="ko">'+escapeHtml(ko == null ? en : ko)+'</span>';
+  }
+  function isKo(){
+    var el = document.getElementById("lang-toggle");
+    return !!(el && el.checked);
+  }
+  function L(en, ko){ return isKo() ? ko : en; }
+
   function loadState(){
     try{
       var el = document.getElementById("dashboard-state");
@@ -210,7 +266,7 @@
   var STATE = (window.claude && window.claude.hot && window.claude.hot.data) || loadState();
 
   function statusLabel(s){
-    return s === "done" ? "done" : s === "investigating" ? "in progress" : "open";
+    return s === "done" ? bi("done","완료") : s === "investigating" ? bi("in progress","진행 중") : bi("open","미해결");
   }
   function nextStatus(s){
     return s === "open" ? "investigating" : s === "investigating" ? "done" : "open";
@@ -220,10 +276,10 @@
     var done = STATE.findings.filter(function(f){return f.status==="done"}).length;
     var open = STATE.findings.length - done;
     var items = [
-      {n: PRS.length, l:"PRs merged", cls:""},
-      {n: FIXED.length + STATE.findings.length, l:"findings reviewed", cls:""},
-      {n: FIXED.length + done, l:"resolved", cls:"good"},
-      {n: open, l:"open follow-ups", cls:"warn"}
+      {n: PRS.length, l:bi("PRs merged","머지된 PR"), cls:""},
+      {n: FIXED.length + STATE.findings.length, l:bi("findings reviewed","검토된 지적 사항"), cls:""},
+      {n: FIXED.length + done, l:bi("resolved","해결됨"), cls:"good"},
+      {n: open, l:bi("open follow-ups","미해결 후속 작업"), cls:"warn"}
     ];
     document.getElementById("stats").innerHTML = items.map(function(it){
       return '<div class="stat"><div class="n tabular '+it.cls+'">'+it.n+'</div><div class="l">'+it.l+'</div></div>';
@@ -235,25 +291,27 @@
     document.getElementById("prlog").innerHTML = PRS.map(function(pr){
       return '<li><div class="pr-row">'+
         '<span class="pr-num">#'+pr.n+'</span>'+
-        '<a class="pr-link" href="https://github.com/jhleeooo/AI-Agent-Engineering/pull/'+pr.n+'" target="_blank" rel="noopener"><span class="pr-title">'+escapeHtml(pr.title)+'</span></a>'+
+        '<a class="pr-link" href="https://github.com/jhleeooo/AI-Agent-Engineering/pull/'+pr.n+'" target="_blank" rel="noopener"><span class="pr-title">'+bi(pr.title, PR_KO[pr.n])+'</span></a>'+
         '<span class="pr-date tabular">'+pr.date+'</span>'+
       '</div></li>';
     }).join("");
   }
 
   function renderFixed(){
-    document.getElementById("fixed-list").innerHTML = FIXED.map(function(f){
-      return '<div class="fixed-item"><span class="chk">✓</span><div><b>'+escapeHtml(f.title)+'</b><p>'+escapeHtml(f.detail)+'</p></div></div>';
+    document.getElementById("fixed-list").innerHTML = FIXED.map(function(f, i){
+      var k = FIXED_KO[i] || f;
+      return '<div class="fixed-item"><span class="chk">✓</span><div><b>'+bi(f.title, k.title)+'</b><p>'+bi(f.detail, k.detail)+'</p></div></div>';
     }).join("");
   }
 
   function renderFindings(){
-    document.getElementById("finding-count").textContent = STATE.findings.length + " open follow-ups";
+    document.getElementById("finding-count").innerHTML = bi(STATE.findings.length + " open follow-ups", "미해결 후속 작업 " + STATE.findings.length + "건");
     document.getElementById("findings").innerHTML = STATE.findings.map(function(f, i){
+      var k = FINDING_KO[f.id] || f;
       return '<li class="finding" tabindex="0" role="button" aria-pressed="false" data-i="'+i+'">'+
         '<div class="f-top">'+
           '<span class="f-num">#'+f.id+'</span>'+
-          '<div class="f-body"><div class="f-title">'+escapeHtml(f.title)+'</div><p class="f-detail">'+escapeHtml(f.detail)+'</p></div>'+
+          '<div class="f-body"><div class="f-title">'+bi(f.title, k.title)+'</div><p class="f-detail">'+bi(f.detail, k.detail)+'</p></div>'+
           '<span class="pill '+f.status+'">'+statusLabel(f.status)+'</span>'+
         '</div>'+
       '</li>';
@@ -304,17 +362,17 @@
   }
 
   function persist(i, prevStatus){
-    if(!window.claude || !window.claude.use){ flashMsg("Not saved — viewer runtime unavailable."); return; }
+    if(!window.claude || !window.claude.use){ flashMsg(L("Not saved — viewer runtime unavailable.","저장되지 않음 — 뷰어 런타임을 쓸 수 없습니다.")); return; }
     claude.use("artifact").then(function(artifact){
-      if(!artifact){ flashMsg("Not saved — this view can't write."); return; }
+      if(!artifact){ flashMsg(L("Not saved — this view can't write.","저장되지 않음 — 이 화면에서는 쓸 수 없습니다.")); return; }
       artifact.publish(buildFullDocument()).then(function(){
-        flashMsg("Saved.");
+        flashMsg(L("Saved.","저장했습니다."));
       }).catch(function(err){
         STATE.findings[i].status = prevStatus;
         renderAll();
-        flashMsg(err && err.code === "conflict" ? "Someone else updated this — refresh to see it." : "Not saved — read-only view.");
+        flashMsg(err && err.code === "conflict" ? L("Someone else updated this — refresh to see it.","다른 사람이 먼저 수정했습니다. 새로고침해서 확인하세요.") : L("Not saved — read-only view.","저장되지 않음 — 읽기 전용 화면입니다."));
       });
-    }).catch(function(){ flashMsg("Not saved — viewer runtime unavailable."); });
+    }).catch(function(){ flashMsg(L("Not saved — viewer runtime unavailable.","저장되지 않음 — 뷰어 런타임을 쓸 수 없습니다.")); });
   }
 
   renderAll();
@@ -324,3 +382,5 @@
   }
 })();
 </script>
+
+</body></html>
