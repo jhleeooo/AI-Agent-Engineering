@@ -163,7 +163,7 @@
 
   <section>
     <h2><span><span class="en">Code review tracker</span><span class="ko">코드 리뷰 트래커</span></span> <span class="count" id="finding-count"></span></h2>
-    <p class="hint"><span class="en">13 findings from <span class="mono">/code-review max</span> on PRs #1–#5. Click an open item to cycle its status — it stays that way for the next person who opens this page.</span><span class="ko">PR #1–#5에 대한 <span class="mono">/code-review max</span> 지적 13건. 항목을 클릭하면 상태가 순서대로 바뀌고, 다음에 이 페이지를 여는 사람에게도 그대로 유지됩니다.</span></p>
+    <p class="hint"><span class="en">13 findings from <span class="mono">/code-review max</span> on PRs #1–#5, all fixed (#1–3 in PR #6, #4–10 in PR #8, #11–13 in PR #9). Click an item to cycle its status — it stays that way for the next person who opens this page.</span><span class="ko">PR #1–#5에 대한 <span class="mono">/code-review max</span> 지적 13건은 모두 수정됐습니다(#1–3은 PR #6, #4–10은 PR #8, #11–13은 PR #9). 항목을 클릭하면 상태가 순서대로 바뀌고, 다음에 이 페이지를 여는 사람에게도 그대로 유지됩니다.</span></p>
 
     <details class="fixed-group">
       <summary><span class="en">3 fixed in PR #6</span><span class="ko">PR #6에서 3건 수정</span></summary>
@@ -190,7 +190,12 @@
     {n:3, title:"Fix Ray multi-agent supply chain agent for real LLM calls", date:"2026-09-21"},
     {n:4, title:"Fix Redis/Temporal supply chain supervisors and restore Temporal file", date:"2026-09-22"},
     {n:5, title:"Add orchestration-boundaries diagram (Ray vs Redis vs Temporal)", date:"2026-09-22"},
-    {n:6, title:"Fix Gemini content-list crash, stale lockfile, and doubled tool-call LLM invocations", date:"2026-09-23"}
+    {n:6, title:"Fix Gemini content-list crash, stale lockfile, and doubled tool-call LLM invocations", date:"2026-09-23"},
+    {n:7, title:"Add project dashboard artifact snapshot", date:"2026-09-27"},
+    {n:8, title:"Fix code-review findings #4-10: shared LLM builder, real .text, caching, key validation", date:"2026-09-27"},
+    {n:9, title:"Fix code-review findings #11-13: async offload, single provider read, shared message reconstruction", date:"2026-09-27"},
+    {n:10, title:"Add Temporal supply chain internals diagram", date:"2026-09-28"},
+    {n:11, title:"Add Korean versions of the Ray actor boundaries diagram and build log", date:"2026-09-29"}
   ];
 
   var PR_KO = {
@@ -199,7 +204,12 @@
     3:"실제 LLM 호출이 되도록 Ray 멀티 에이전트 공급망 에이전트 수정",
     4:"Redis/Temporal 공급망 슈퍼바이저 수정 및 Temporal 파일 복원",
     5:"orchestration-boundaries 다이어그램 추가 (Ray vs Redis vs Temporal)",
-    6:"Gemini content 리스트 크래시, 오래된 락파일, 중복된 tool-call LLM 호출 수정"
+    6:"Gemini content 리스트 크래시, 오래된 락파일, 중복된 tool-call LLM 호출 수정",
+    7:"프로젝트 대시보드 아티팩트 스냅샷 추가",
+    8:"코드 리뷰 지적 #4-10 수정: 공용 LLM 빌더, 내장 .text, 캐싱, 키 검증",
+    9:"코드 리뷰 지적 #11-13 수정: 비동기 오프로드, provider 단일 읽기, 공용 메시지 복원",
+    10:"Temporal 공급망 내부 구조 다이어그램 추가",
+    11:"Ray 액터 경계 다이어그램과 빌드 로그의 한글 버전 추가"
   };
 
   var FIXED = [
@@ -228,16 +238,16 @@
   };
 
   var DEFAULT_FINDINGS = [
-    {id:4,  title:"as_text() duplicates langchain_core's own BaseMessage.text", detail:"Reimplemented across 3 files (ray, redis, temporal) instead of using the built-in property.", status:"open"},
-    {id:5,  title:"build_llm() duplicated near-verbatim across ~19 files", detail:"No shared helper in src/common/ for constructing the LLM client.", status:"open"},
-    {id:6,  title:"Temporal rebuilds the LLM client on every activity call", detail:"specialist_activity constructs a new client per call/retry instead of caching one per worker process (~85ms wasted per call).", status:"open"},
-    {id:7,  title:"customer_support_agent.py startup guard misses GOOGLE_API_KEY", detail:"Only validates OPENAI_API_KEY, even when LLM_PROVIDER=gemini.", status:"open"},
-    {id:8,  title:"build_llm()'s Gemini branch drops streaming/verbose behavior", detail:"Omits callbacks=[StreamingStdOutCallbackHandler()] and verbose=True that the OpenAI branch sets.", status:"open"},
-    {id:9,  title:"Temporal's to_message() silently defaults unknown types to HumanMessage", detail:"A mistyped message dict can silently drop its tool_calls instead of raising.", status:"open"},
-    {id:10, title:"supply_chain_logistics_agent.py hand-instantiates ChatGoogleGenerativeAI", detail:"Its Gemini branch bypasses the init_chat_model() factory already used for OpenAI.", status:"open"},
-    {id:11, title:"Temporal activities call blocking, synchronous .invoke()", detail:"supervisor_activity / specialist_activity have no asyncio.to_thread offload, risking event-loop stalls under concurrency.", status:"open"},
-    {id:12, title:"LLM_PROVIDER read and lower-cased in two places", detail:"Computed independently in the startup guard and in build_llm() instead of once.", status:"open"},
-    {id:13, title:"Two idioms reconstruct a BaseMessage from a dict", detail:"to_message()/_MESSAGE_TYPES in the temporal file vs. a ternary chain in deserialize_messages() in the redis file.", status:"open"}
+    {id:4,  title:"as_text() duplicates langchain_core's own BaseMessage.text", detail:"Reimplemented across 3 files (ray, redis, temporal) instead of using the built-in property.", status:"done"},
+    {id:5,  title:"build_llm() duplicated near-verbatim across ~19 files", detail:"No shared helper in src/common/ for constructing the LLM client.", status:"done"},
+    {id:6,  title:"Temporal rebuilds the LLM client on every activity call", detail:"specialist_activity constructs a new client per call/retry instead of caching one per worker process (~85ms wasted per call).", status:"done"},
+    {id:7,  title:"customer_support_agent.py startup guard misses GOOGLE_API_KEY", detail:"Only validates OPENAI_API_KEY, even when LLM_PROVIDER=gemini.", status:"done"},
+    {id:8,  title:"build_llm()'s Gemini branch drops streaming/verbose behavior", detail:"Omits callbacks=[StreamingStdOutCallbackHandler()] and verbose=True that the OpenAI branch sets.", status:"done"},
+    {id:9,  title:"Temporal's to_message() silently defaults unknown types to HumanMessage", detail:"A mistyped message dict can silently drop its tool_calls instead of raising.", status:"done"},
+    {id:10, title:"supply_chain_logistics_agent.py hand-instantiates ChatGoogleGenerativeAI", detail:"Its Gemini branch bypasses the init_chat_model() factory already used for OpenAI.", status:"done"},
+    {id:11, title:"Temporal activities call blocking, synchronous .invoke()", detail:"supervisor_activity / specialist_activity have no asyncio.to_thread offload, risking event-loop stalls under concurrency.", status:"done"},
+    {id:12, title:"LLM_PROVIDER read and lower-cased in two places", detail:"Computed independently in the startup guard and in build_llm() instead of once.", status:"done"},
+    {id:13, title:"Two idioms reconstruct a BaseMessage from a dict", detail:"to_message()/_MESSAGE_TYPES in the temporal file vs. a ternary chain in deserialize_messages() in the redis file.", status:"done"}
   ];
 
   function escapeHtml(s){
@@ -305,7 +315,8 @@
   }
 
   function renderFindings(){
-    document.getElementById("finding-count").innerHTML = bi(STATE.findings.length + " open follow-ups", "미해결 후속 작업 " + STATE.findings.length + "건");
+    var openCount = STATE.findings.filter(function(f){return f.status!=="done"}).length;
+    document.getElementById("finding-count").innerHTML = bi(openCount + " of " + STATE.findings.length + " open", STATE.findings.length + "건 중 " + openCount + "건 미해결");
     document.getElementById("findings").innerHTML = STATE.findings.map(function(f, i){
       var k = FINDING_KO[f.id] || f;
       return '<li class="finding" tabindex="0" role="button" aria-pressed="false" data-i="'+i+'">'+
