@@ -2,11 +2,10 @@
 
 The Temporal SDK exposes its own metrics (workflow/activity task latencies,
 schedule-to-start latency, poller counts, ...) through a Prometheus scrape
-endpoint. Those are the series the community dashboards at
-https://github.com/temporalio/dashboards expect, so a worker only has to
-start that endpoint; nothing here counts anything by hand. Latencies are
-exported in seconds. The Grafana dashboard in grafana-dashboards/ is built
-on these series.
+endpoint (https://docs.temporal.io/references/sdk-metrics), so a worker only
+has to start that endpoint; nothing here counts anything by hand. Latencies are
+exported in seconds and counters carry a `_total` suffix. The Grafana
+dashboard in grafana-dashboards/ is built on these series.
 
 Usage: build one Runtime per process and pass it to every Client.
 
@@ -34,10 +33,16 @@ def build_temporal_runtime(bind_address: str | None = None) -> Runtime:
         bind_address = os.getenv("TEMPORAL_METRICS_ADDR", DEFAULT_METRICS_ADDR)
     if not bind_address:
         return Runtime.default()
-    # Durations in seconds (the Prometheus convention) rather than the SDK's
-    # default milliseconds, so latency panels can use Grafana's "s" unit.
+    # Prometheus conventions instead of the SDK's defaults: durations in seconds
+    # (not milliseconds) so latency panels can use Grafana's "s" unit, and a
+    # `_total` suffix on counters so PromQL rate()/increase() don't warn that
+    # the metric "might not be a counter".
     return Runtime(
         telemetry=TelemetryConfig(
-            metrics=PrometheusConfig(bind_address=bind_address, durations_as_seconds=True)
+            metrics=PrometheusConfig(
+                bind_address=bind_address,
+                durations_as_seconds=True,
+                counters_total_suffix=True,
+            )
         )
     )
