@@ -291,15 +291,26 @@
   }
   function L(en, ko){ return isKo() ? ko : en; }
 
+  // Bump DATA_VERSION when DEFAULT_FINDINGS change: state saved under older defaults is then dropped.
+  var DATA_VERSION = 2;
+  function validState(s){
+    return !!s && s.v === DATA_VERSION && Array.isArray(s.findings);
+  }
+
   function loadState(){
     try{
       var el = document.getElementById("dashboard-state");
-      if(el && el.textContent.trim()) return JSON.parse(el.textContent);
+      if(el && el.textContent.trim()){
+        var saved = JSON.parse(el.textContent);
+        if(validState(saved)) return saved;
+      }
     }catch(e){}
-    return {findings: DEFAULT_FINDINGS};
+    return {v: DATA_VERSION, findings: DEFAULT_FINDINGS};
   }
 
-  var STATE = (window.claude && window.claude.hot && window.claude.hot.data) || loadState();
+  // The viewer may hand back an empty or outdated object as hot.data; only trust a valid one.
+  var hotData = window.claude && window.claude.hot && window.claude.hot.data;
+  var STATE = validState(hotData) ? hotData : loadState();
 
   function statusLabel(s){
     return s === "done" ? bi("done","완료") : s === "investigating" ? bi("in progress","진행 중") : bi("open","미해결");
