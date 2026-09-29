@@ -3,14 +3,20 @@ name: Update build log
 # Keeps the PR log in docs/dashboard/multi-agent-build-log.html in step with
 # the merged pull requests, so nobody edits it by hand and a PR no longer has
 # to list itself. The commit goes straight to main (a PR would itself be
-# merged and trigger another run) and only touches the dashboard page, which
-# this workflow ignores, so it cannot loop.
+# merged and trigger another run) and only touches the dashboard page and its
+# Korean titles file, which this workflow ignores, so it cannot loop.
+#
+# Korean titles come from a `Korean title: ...` line in the PR description, or,
+# when the repository has an ANTHROPIC_API_KEY secret, from a Claude
+# translation of the English title. Without either, the page shows the English
+# title in both languages.
 
 on:
   push:
     branches: [main]
     paths-ignore:
       - docs/dashboard/multi-agent-build-log.html
+      - docs/dashboard/pr-titles-ko.json
   workflow_dispatch:
 
 concurrency:
@@ -23,12 +29,17 @@ permissions:
 jobs:
   update:
     runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install the Anthropic SDK (only when translating)
+        if: ${{ env.ANTHROPIC_API_KEY != '' }}
+        run: python3 -m pip install --quiet anthropic
+
       - name: Regenerate the PR log
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python3 scripts/update_build_log.py
 
       - name: Commit the change
