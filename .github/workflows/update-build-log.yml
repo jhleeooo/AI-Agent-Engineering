@@ -1,0 +1,43 @@
+name: Update build log
+
+# Keeps the PR log in docs/dashboard/multi-agent-build-log.html in step with
+# the merged pull requests, so nobody edits it by hand and a PR no longer has
+# to list itself. The commit goes straight to main (a PR would itself be
+# merged and trigger another run) and only touches the dashboard page, which
+# this workflow ignores, so it cannot loop.
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - docs/dashboard/multi-agent-build-log.html
+  workflow_dispatch:
+
+concurrency:
+  group: update-build-log
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Regenerate the PR log
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 scripts/update_build_log.py
+
+      - name: Commit the change
+        run: |
+          if git diff --quiet; then
+            echo "Build log already up to date"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "Update build log dashboard"
+          git push
