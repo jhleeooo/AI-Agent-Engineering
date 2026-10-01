@@ -1,0 +1,202 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Supply Chain Agents in Plain Words</title>
+<style>
+  :root{
+    --bg:#eef0ef; --surface:#ffffff; --surface-2:#e1e6e4; --ink:#1b2422; --ink-dim:#58635f;
+    --line:#c9d1ce; --bad:#a84a24; --ok:#2f6b4e;
+    --shadow:0 1px 2px rgba(20,30,26,.05),0 6px 18px rgba(20,30,26,.05);
+    color-scheme:light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#121614; --surface:#1a201d; --surface-2:#212925; --ink:#e6ebe8; --ink-dim:#96a39d;
+      --line:#333c37; --bad:#e2895a; --ok:#6fbd94;
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.3);
+      color-scheme:dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#121614; --surface:#1a201d; --surface-2:#212925; --ink:#e6ebe8; --ink-dim:#96a39d;
+    --line:#333c37; --bad:#e2895a; --ok:#6fbd94;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.3);
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  body{background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans","Noto Sans KR",system-ui,sans-serif}
+  main.wrap{display:block;max-width:1240px;margin:0 auto;padding:28px 16px 48px}
+  code,.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.92em}
+
+  header{margin-bottom:8px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+  .head-text{flex:1;min-width:240px}
+  .eyebrow{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.06em;color:var(--ink-dim);text-transform:uppercase}
+  h1{margin:2px 0 8px;font-size:clamp(22px,3.4vw,30px);font-weight:700;letter-spacing:-.01em;text-wrap:balance}
+  .sub{margin:0;color:var(--ink-dim);font-size:14.5px;max-width:78ch;line-height:1.6}
+
+  .lang-switch{flex:none;display:inline-flex;align-items:center;font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.02em;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 14px;cursor:pointer;box-shadow:var(--shadow);user-select:none}
+  .lang-switch:hover{border-color:var(--bad)}
+  #lang-toggle:focus-visible ~ main .lang-switch{outline:2px solid var(--ink);outline-offset:2px}
+  #lang-toggle{position:absolute;opacity:0;pointer-events:none}
+
+  section{margin-top:34px}
+  h2{margin:0 0 4px;font-size:clamp(17px,2.4vw,21px);font-weight:700;text-wrap:balance}
+  .claim{margin:0;color:var(--ink-dim);font-size:14px;line-height:1.55;max-width:84ch}
+
+  figure{margin:14px 0 0;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 14px 8px;box-shadow:var(--shadow)}
+  .scroll{overflow-x:auto}
+  .scroll svg{display:block;width:100%;min-width:900px;height:auto;font-family:"IBM Plex Sans","Noto Sans KR",system-ui,sans-serif}
+  figcaption{margin:12px 2px 4px;font-size:13.5px;color:var(--ink-dim);line-height:1.6;max-width:90ch}
+  figcaption b{color:var(--ink);font-weight:600}
+
+  .key{display:flex;flex-wrap:wrap;gap:8px 22px;margin:14px 2px 0;font-size:12.5px;color:var(--ink-dim)}
+  .key span.item{display:inline-flex;align-items:center;gap:8px}
+  .key svg{flex:none;display:block}
+
+  .evidence{margin-top:16px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow)}
+  .evidence h3{margin:0 0 8px;font-size:14px;font-weight:700}
+  .tbl{overflow-x:auto}
+  table{border-collapse:collapse;width:100%;min-width:640px;font-size:13px}
+  th,td{text-align:left;padding:8px 10px;border-top:1px solid var(--line);vertical-align:top;line-height:1.5}
+  th{font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-dim);border-top:0;font-weight:600}
+  td.n{font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
+  td.zero{color:var(--bad)}
+  td.one{color:var(--ok)}
+  .evidence p{margin:10px 0 0;font-size:13px;color:var(--ink-dim);line-height:1.6;max-width:90ch}
+
+  /* Bilingual toggle: checkbox is a sibling of main; ~ switches .en/.ko */
+  main .ko{display:none}
+  main .en{display:inline}
+  #lang-toggle:checked ~ main .en{display:none}
+  #lang-toggle:checked ~ main .ko{display:inline}
+  main .lang-switch .ko{display:none}
+  #lang-toggle:checked ~ main .lang-switch .en{display:none}
+  #lang-toggle:checked ~ main .lang-switch .ko{display:inline}
+
+  @media (max-width:640px){ figure{padding:10px 8px 6px} .evidence{padding:12px} }
+
+  .scroll svg{min-width:760px}
+  .sub{font-size:16px}
+  .claim{font-size:15px}
+  figcaption{font-size:15px}
+  .foot{margin-top:28px;font-size:13.5px;color:var(--ink-dim);max-width:84ch;line-height:1.6}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+
+<input type="checkbox" id="lang-toggle" aria-label="한국어 / English">
+<main class="wrap">
+  <header>
+    <div class="head-text">
+      <span class="eyebrow"><span class="en">Plain-words version</span><span class="ko">쉬운 설명 버전</span></span>
+      <h1><span class="en">A manager picks who handles the request, and everything is written down</span><span class="ko">매니저가 담당자를 고르고, 모든 과정을 기록한다</span></h1>
+      <p class="sub"><span class="en">That is the whole system. One of the three records is broken right now.</span><span class="ko">시스템은 이게 전부입니다. 지금은 기록 세 종류 중 하나가 고장 나 있습니다.</span></p>
+    </div>
+    <label class="lang-switch" for="lang-toggle"><span class="en">한국어</span><span class="ko">EN</span></label>
+  </header>
+
+  <section>
+    <h2><span class="en">Who does what</span><span class="ko">누가 무엇을 하나</span></h2>
+    <p class="claim"><span class="en">One request comes in, one person handles it, one answer goes out.</span><span class="ko">요청이 들어오면 한 명이 처리하고, 답변이 나갑니다.</span></p>
+    <figure>
+      <div class="scroll"><svg viewBox="0 0 1000 410" role="img" aria-label="A customer request goes to a manager. The manager picks one of three people (stock, shipping or supplier) to handle it, and that person produces the answer. The manager and the three people all think with an AI.">
+<defs>
+<marker id="ar-ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--ink)"/></marker>
+<marker id="ar-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--ok)"/></marker>
+<marker id="ar-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--bad)"/></marker>
+<marker id="ar-dim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--ink-dim)"/></marker>
+</defs>
+<rect x="20" y="150" width="150" height="90" rx="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.3"/>
+<text class="en" x="95" y="183" text-anchor="middle" font-size="17" fill="var(--ink)" font-weight="700">Request</text><text class="ko" x="95" y="183" text-anchor="middle" font-size="17" fill="var(--ink)" font-weight="700">손님 요청</text>
+<text class="en" x="95" y="206" text-anchor="middle" font-size="13" fill="var(--ink-dim)">stock is low,</text><text class="ko" x="95" y="206" text-anchor="middle" font-size="13" fill="var(--ink-dim)">재고가 부족해요,</text>
+<text class="en" x="95" y="224" text-anchor="middle" font-size="13" fill="var(--ink-dim)">what do we do?</text><text class="ko" x="95" y="224" text-anchor="middle" font-size="13" fill="var(--ink-dim)">어쩌죠?</text>
+<line x1="170" y1="195" x2="248" y2="195" stroke="var(--ink)" stroke-width="2" marker-end="url(#ar-ink)"/>
+<rect x="250" y="150" width="170" height="90" rx="10" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.8"/>
+<text class="en" x="335" y="183" text-anchor="middle" font-size="17" fill="var(--ink)" font-weight="700">Manager</text><text class="ko" x="335" y="183" text-anchor="middle" font-size="17" fill="var(--ink)" font-weight="700">매니저</text>
+<text class="en" x="335" y="206" text-anchor="middle" font-size="13" fill="var(--ink-dim)">reads it and</text><text class="ko" x="335" y="206" text-anchor="middle" font-size="13" fill="var(--ink-dim)">읽고 한 명을</text>
+<text class="en" x="335" y="224" text-anchor="middle" font-size="13" fill="var(--ink-dim)">picks one person</text><text class="ko" x="335" y="224" text-anchor="middle" font-size="13" fill="var(--ink-dim)">고른다</text>
+<rect x="526" y="16" width="248" height="298" rx="10" fill="var(--surface-2)"/>
+<line x1="420" y1="195" x2="540" y2="65" stroke="var(--ink)" stroke-width="1.8" marker-end="url(#ar-ink)"/>
+<rect x="542" y="30" width="220" height="70" rx="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.3"/>
+<text class="en" x="652" y="60" text-anchor="middle" font-size="15.5" fill="var(--ink)" font-weight="700">Stock person</text><text class="ko" x="652" y="60" text-anchor="middle" font-size="15.5" fill="var(--ink)" font-weight="700">재고 담당</text>
+<text class="en" x="652" y="82" text-anchor="middle" font-size="13" fill="var(--ink-dim)">stock and warehouse</text><text class="ko" x="652" y="82" text-anchor="middle" font-size="13" fill="var(--ink-dim)">재고와 창고</text>
+<line x1="764" y1="65" x2="840" y2="195" stroke="var(--ink)" stroke-width="1.8" marker-end="url(#ar-ink)"/>
+<line x1="420" y1="195" x2="540" y2="165" stroke="var(--ink)" stroke-width="1.8" marker-end="url(#ar-ink)"/>
+<rect x="542" y="130" width="220" height="70" rx="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.3"/>
+<text class="en" x="652" y="160" text-anchor="middle" font-size="15.5" fill="var(--ink)" font-weight="700">Shipping person</text><text class="ko" x="652" y="160" text-anchor="middle" font-size="15.5" fill="var(--ink)" font-weight="700">운송 담당</text>
+<text class="en" x="652" y="182" text-anchor="middle" font-size="13" fill="var(--ink-dim)">delivery and returns</text><text class="ko" x="652" y="182" text-anchor="middle" font-size="13" fill="var(--ink-dim)">배송과 반품</text>
+<line x1="764" y1="165" x2="840" y2="195" stroke="var(--ink)" stroke-width="1.8" marker-end="url(#ar-ink)"/>
+<line x1="420" y1="195" x2="540" y2="265" stroke="var(--ink)" stroke-width="1.8" marker-end="url(#ar-ink)"/>
+<rect x="542" y="230" width="220" height="70" rx="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.3"/>
+<text class="en" x="652" y="260" text-anchor="middle" font-size="15.5" fill="var(--ink)" font-weight="700">Supplier person</text><text class="ko" x="652" y="260" text-anchor="middle" font-size="15.5" fill="var(--ink)" font-weight="700">공급사 담당</text>
+<text class="en" x="652" y="282" text-anchor="middle" font-size="13" fill="var(--ink-dim)">suppliers and rules</text><text class="ko" x="652" y="282" text-anchor="middle" font-size="13" fill="var(--ink-dim)">공급사와 규정</text>
+<line x1="764" y1="265" x2="840" y2="195" stroke="var(--ink)" stroke-width="1.8" marker-end="url(#ar-ink)"/>
+<text class="en" x="482" y="108" text-anchor="end" font-size="12.5" fill="var(--ink-dim)">only one</text><text class="ko" x="482" y="108" text-anchor="end" font-size="12.5" fill="var(--ink-dim)">한 명만</text>
+<rect x="842" y="150" width="140" height="90" rx="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.3"/>
+<text class="en" x="912" y="190" text-anchor="middle" font-size="17" fill="var(--ink)" font-weight="700">Answer</text><text class="ko" x="912" y="190" text-anchor="middle" font-size="17" fill="var(--ink)" font-weight="700">답변</text>
+<text class="en" x="912" y="212" text-anchor="middle" font-size="12" fill="var(--ink-dim)">back to the customer</text><text class="ko" x="912" y="212" text-anchor="middle" font-size="12" fill="var(--ink-dim)">손님에게 전달</text>
+<rect x="250" y="346" width="524" height="50" rx="10" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.2"/>
+<text class="en" x="512" y="376" text-anchor="middle" font-size="14" fill="var(--ink)" font-weight="600">All of them think with an AI (OpenAI or Gemini)</text><text class="ko" x="512" y="376" text-anchor="middle" font-size="14" fill="var(--ink)" font-weight="600">매니저와 담당자 셋 모두 AI(OpenAI 또는 Gemini)로 생각한다</text>
+<line x1="335" y1="346" x2="335" y2="242" stroke="var(--ink-dim)" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#ar-dim)"/>
+<line x1="650" y1="346" x2="650" y2="316" stroke="var(--ink-dim)" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#ar-dim)"/>
+</svg>
+</div>
+      <figcaption><span class="en">The manager only decides <b>who</b> should handle the request. The person picked does the work with their own set of tools and sends back the answer. The project builds this same team four different ways: one person doing everything in order, a head office that keeps a log so work can resume after a failure, one dedicated staff member per customer, and a notice board where everyone reads every note. The manager and the three people are the same in all four.</span><span class="ko">매니저는 <b>누가</b> 처리할지만 정합니다. 지명된 담당자가 자기 도구로 일을 하고 답변을 돌려줍니다. 이 프로젝트는 같은 팀을 네 가지 방식으로 만들어 두었습니다. 한 사람이 순서대로 다 하는 방식, 본사가 기록을 남겨 실패해도 이어서 하는 방식, 손님마다 전담 직원을 두는 방식, 모두가 게시판의 쪽지를 전부 읽는 방식입니다. 매니저와 담당자 셋은 네 방식 모두 같습니다.</span></figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2><span class="en">What gets written down</span><span class="ko">무엇을 기록하나</span></h2>
+    <p class="claim"><span class="en">Three records, two that work and one that does not.</span><span class="ko">기록은 세 종류인데, 둘은 되고 하나는 안 됩니다.</span></p>
+    <figure>
+      <div class="scroll"><svg viewBox="0 0 1000 360" role="img" aria-label="The worker writes a diary of every step and sends it over; a scoreboard comes by every 15 seconds to read the counts; the route map never receives anything because its address is missing. One screen shows them, but only the scoreboard is hooked up to it.">
+<defs>
+<marker id="ar-ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--ink)"/></marker>
+<marker id="ar-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--ok)"/></marker>
+<marker id="ar-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--bad)"/></marker>
+<marker id="ar-dim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--ink-dim)"/></marker>
+</defs>
+<rect x="20" y="14" width="210" height="332" rx="10" fill="var(--surface-2)"/>
+<text class="en" x="125" y="166" text-anchor="middle" font-size="17" fill="var(--ink)" font-weight="700">Worker</text><text class="ko" x="125" y="166" text-anchor="middle" font-size="17" fill="var(--ink)" font-weight="700">일하는 직원</text>
+<text class="en" x="125" y="190" text-anchor="middle" font-size="13" fill="var(--ink-dim)">the one who</text><text class="ko" x="125" y="190" text-anchor="middle" font-size="13" fill="var(--ink-dim)">실제로 일을</text>
+<text class="en" x="125" y="208" text-anchor="middle" font-size="13" fill="var(--ink-dim)">does the job</text><text class="ko" x="125" y="208" text-anchor="middle" font-size="13" fill="var(--ink-dim)">하는 쪽</text>
+<rect x="470" y="14" width="250" height="96" rx="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.3"/>
+<text class="en" x="486" y="46" text-anchor="start" font-size="17" fill="var(--ink)" font-weight="700">Diary</text><text class="ko" x="486" y="46" text-anchor="start" font-size="17" fill="var(--ink)" font-weight="700">일기장</text>
+<text class="en" x="486" y="70" text-anchor="start" font-size="13" fill="var(--ink-dim)">a note for every step</text><text class="ko" x="486" y="70" text-anchor="start" font-size="13" fill="var(--ink-dim)">단계마다 한 줄씩 기록</text>
+<text x="486" y="92" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" fill="var(--ink-dim)">logs · Loki</text>
+<rect x="470" y="132" width="250" height="96" rx="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.3"/>
+<text class="en" x="486" y="164" text-anchor="start" font-size="17" fill="var(--ink)" font-weight="700">Scoreboard</text><text class="ko" x="486" y="164" text-anchor="start" font-size="17" fill="var(--ink)" font-weight="700">통계판</text>
+<text class="en" x="486" y="188" text-anchor="start" font-size="13" fill="var(--ink-dim)">counts and timings</text><text class="ko" x="486" y="188" text-anchor="start" font-size="13" fill="var(--ink-dim)">횟수와 걸린 시간</text>
+<text x="486" y="210" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" fill="var(--ink-dim)">metrics · Prometheus</text>
+<rect x="470" y="250" width="250" height="96" rx="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.3"/>
+<text class="en" x="486" y="282" text-anchor="start" font-size="17" fill="var(--ink)" font-weight="700">Route map</text><text class="ko" x="486" y="282" text-anchor="start" font-size="17" fill="var(--ink)" font-weight="700">경로 지도</text>
+<text class="en" x="486" y="306" text-anchor="start" font-size="13" fill="var(--ink-dim)">which steps a request took</text><text class="ko" x="486" y="306" text-anchor="start" font-size="13" fill="var(--ink-dim)">요청이 거친 단계</text>
+<text x="486" y="328" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" fill="var(--ink-dim)">traces · Tempo</text>
+<line x1="232" y1="62" x2="468" y2="62" stroke="var(--ink)" stroke-width="2" marker-end="url(#ar-ink)"/>
+<text class="en" x="350" y="50" text-anchor="middle" font-size="13.5" fill="var(--ink)">the worker brings it over</text><text class="ko" x="350" y="50" text-anchor="middle" font-size="13.5" fill="var(--ink)">직원이 직접 갖다 준다</text>
+<text class="en" x="350" y="84" text-anchor="middle" font-size="12.5" fill="var(--ok)" font-weight="600">works</text><text class="ko" x="350" y="84" text-anchor="middle" font-size="12.5" fill="var(--ok)" font-weight="600">잘 동작함</text>
+<line x1="468" y1="180" x2="232" y2="180" stroke="var(--ok)" stroke-width="2" marker-end="url(#ar-ok)"/>
+<text class="en" x="350" y="160" text-anchor="middle" font-size="13.5" fill="var(--ok)" font-weight="600">the scoreboard comes by</text><text class="ko" x="350" y="160" text-anchor="middle" font-size="13.5" fill="var(--ok)" font-weight="600">통계판이 15초마다</text>
+<text class="en" x="350" y="204" text-anchor="middle" font-size="13.5" fill="var(--ok)" font-weight="600">and reads it every 15 s</text><text class="ko" x="350" y="204" text-anchor="middle" font-size="13.5" fill="var(--ok)" font-weight="600">와서 숫자를 가져간다</text>
+<line x1="232" y1="298" x2="468" y2="298" stroke="var(--bad)" stroke-width="2" stroke-dasharray="7 6" marker-end="url(#ar-bad)"/>
+<circle cx="350" cy="298" r="11" fill="var(--surface-2)" stroke="var(--bad)" stroke-width="1.8"/><path d="M344.5,292.5 L355.5,303.5 M355.5,292.5 L344.5,303.5" stroke="var(--bad)" stroke-width="2" fill="none"/>
+<text class="en" x="350" y="270" text-anchor="middle" font-size="14" fill="var(--bad)" font-weight="700">never arrives</text><text class="ko" x="350" y="270" text-anchor="middle" font-size="14" fill="var(--bad)" font-weight="700">도착하지 않는다</text>
+<text class="en" x="350" y="330" text-anchor="middle" font-size="13.5" fill="var(--bad)">the address is empty</text><text class="ko" x="350" y="330" text-anchor="middle" font-size="13.5" fill="var(--bad)">주소가 비어 있다</text>
+<rect x="792" y="14" width="188" height="332" rx="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.3"/>
+<text class="en" x="886" y="50" text-anchor="middle" font-size="17" fill="var(--ink)" font-weight="700">Screen</text><text class="ko" x="886" y="50" text-anchor="middle" font-size="17" fill="var(--ink)" font-weight="700">화면판</text>
+<text x="886" y="68" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" fill="var(--ink-dim)">Grafana</text>
+<text class="en" x="886" y="100" text-anchor="middle" font-size="13" fill="var(--ink-dim)">shows all of it</text><text class="ko" x="886" y="100" text-anchor="middle" font-size="13" fill="var(--ink-dim)">전부 한곳에서</text>
+<text class="en" x="886" y="117" text-anchor="middle" font-size="13" fill="var(--ink-dim)">in one place</text><text class="ko" x="886" y="117" text-anchor="middle" font-size="13" fill="var(--ink-dim)">보여 준다</text>
+<text class="en" x="886" y="210" text-anchor="middle" font-size="13" fill="var(--ok)" font-weight="600">scoreboard:</text><text class="ko" x="886" y="210" text-anchor="middle" font-size="13" fill="var(--ok)" font-weight="600">통계판:</text>
+<text class="en" x="886" y="228" text-anchor="middle" font-size="13" fill="var(--ok)" font-weight="600">already hooked up</text><text class="ko" x="886" y="228" text-anchor="middle" font-size="13" fill="var(--ok)" font-weight="600">이미 연결됨</text>
+<text class="en" x="886" y="262" text-anchor="middle" font-size="13" fill="var(--ink-dim)">diary and map:</text><text class="ko" x="886" y="262" text-anchor="middle" font-size="13" fill="var(--ink-dim)">일기장·지도:</text>
+<text class="en" x="886" y="280" text-anchor="middle" font-size="13" fill="var(--ink-dim)">hook up by hand</text><text class="ko" x="886" y="280" text-anchor="middle" font-size="13" fill="var(--ink-dim)">직접 연결해야 함</text>
+<line x1="790" y1="62" x2="722" y2="62" stroke="var(--ink-dim)" stroke-width="1.8" stroke-dasharray="4 4" marker-end="url(#ar-dim)"/>
+<line x1="790" y1="180" x2="722" y2="180" stroke="var(--ok)" stroke-width="2" marker-end="url(#ar-ok)"/>
+<line x1="790" y1="298" x2="722" y2="298" stroke="var(--ink-dim)" stroke-width="1.8" stroke-dasharray="4 4" marker-end="url(#ar-dim)"/>
+</svg>
+</div>
+      <figcaption><span class="en">The <b>diary</b> works: the worker writes a note for every tool it uses. The <b>scoreboard</b> works too, but in the opposite direction: it comes to the worker and reads the numbers. The <b>route map</b> never receives anything, like a parcel with an empty address; one missing setting causes it, and the fix is one line. The <b>screen</b> shows the scoreboard already. The diary and the route map have to be hooked up to it by hand.</span><span class="ko"><b>일기장</b>은 잘 됩니다. 직원이 도구를 쓸 때마다 한 줄씩 적습니다. <b>통계판</b>도 되는데 방향이 반대입니다. 통계판이 직원에게 와서 숫자를 읽어 갑니다. <b>경로 지도</b>는 주소가 빈 택배처럼 아무것도 받지 못합니다. 설정 하나가 빠진 탓이고, 고치는 데 한 줄이면 됩니다. <b>화면판</b>에는 통계판이 이미 연결돼 있습니다. 일기장과 경로 지도는 직접 연결해야 합니다.</span></figcaption>
+    </figure>
+    <p class="foot"><span class="en">File names, port numbers and the test results behind the red arrow are in the detailed version of this page.</span><span class="ko">파일 이름, 포트 번호, 빨간 화살표의 근거가 된 시험 결과는 이 페이지의 상세 버전에 있습니다.</span></p>
+  </section>
+</main>
+
+</body></html>
