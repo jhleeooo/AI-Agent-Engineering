@@ -1,0 +1,380 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Supply Chain Agent Architecture</title>
+<style>
+  :root{
+    --bg:#eef0ef; --surface:#ffffff; --surface-2:#e1e6e4; --ink:#1b2422; --ink-dim:#58635f;
+    --line:#c9d1ce; --bad:#a84a24; --ok:#2f6b4e;
+    --shadow:0 1px 2px rgba(20,30,26,.05),0 6px 18px rgba(20,30,26,.05);
+    color-scheme:light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#121614; --surface:#1a201d; --surface-2:#212925; --ink:#e6ebe8; --ink-dim:#96a39d;
+      --line:#333c37; --bad:#e2895a; --ok:#6fbd94;
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.3);
+      color-scheme:dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#121614; --surface:#1a201d; --surface-2:#212925; --ink:#e6ebe8; --ink-dim:#96a39d;
+    --line:#333c37; --bad:#e2895a; --ok:#6fbd94;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.3);
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  body{background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans","Noto Sans KR",system-ui,sans-serif}
+  main.wrap{display:block;max-width:1240px;margin:0 auto;padding:28px 16px 48px}
+  code,.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.92em}
+
+  header{margin-bottom:8px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+  .head-text{flex:1;min-width:240px}
+  .eyebrow{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.06em;color:var(--ink-dim);text-transform:uppercase}
+  h1{margin:2px 0 8px;font-size:clamp(22px,3.4vw,30px);font-weight:700;letter-spacing:-.01em;text-wrap:balance}
+  .sub{margin:0;color:var(--ink-dim);font-size:14.5px;max-width:78ch;line-height:1.6}
+
+  .lang-switch{flex:none;display:inline-flex;align-items:center;font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.02em;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 14px;cursor:pointer;box-shadow:var(--shadow);user-select:none}
+  .lang-switch:hover{border-color:var(--bad)}
+  #lang-toggle:focus-visible ~ main .lang-switch{outline:2px solid var(--ink);outline-offset:2px}
+  #lang-toggle{position:absolute;opacity:0;pointer-events:none}
+
+  section{margin-top:34px}
+  h2{margin:0 0 4px;font-size:clamp(17px,2.4vw,21px);font-weight:700;text-wrap:balance}
+  .claim{margin:0;color:var(--ink-dim);font-size:14px;line-height:1.55;max-width:84ch}
+
+  figure{margin:14px 0 0;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 14px 8px;box-shadow:var(--shadow)}
+  .scroll{overflow-x:auto}
+  .scroll svg{display:block;width:100%;min-width:900px;height:auto;font-family:"IBM Plex Sans","Noto Sans KR",system-ui,sans-serif}
+  figcaption{margin:12px 2px 4px;font-size:13.5px;color:var(--ink-dim);line-height:1.6;max-width:90ch}
+  figcaption b{color:var(--ink);font-weight:600}
+
+  .key{display:flex;flex-wrap:wrap;gap:8px 22px;margin:14px 2px 0;font-size:12.5px;color:var(--ink-dim)}
+  .key span.item{display:inline-flex;align-items:center;gap:8px}
+  .key svg{flex:none;display:block}
+
+  .evidence{margin-top:16px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow)}
+  .evidence h3{margin:0 0 8px;font-size:14px;font-weight:700}
+  .tbl{overflow-x:auto}
+  table{border-collapse:collapse;width:100%;min-width:640px;font-size:13px}
+  th,td{text-align:left;padding:8px 10px;border-top:1px solid var(--line);vertical-align:top;line-height:1.5}
+  th{font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-dim);border-top:0;font-weight:600}
+  td.n{font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
+  td.zero{color:var(--bad)}
+  td.one{color:var(--ok)}
+  .evidence p{margin:10px 0 0;font-size:13px;color:var(--ink-dim);line-height:1.6;max-width:90ch}
+
+  /* Bilingual toggle: checkbox is a sibling of main; ~ switches .en/.ko */
+  main .ko{display:none}
+  main .en{display:inline}
+  #lang-toggle:checked ~ main .en{display:none}
+  #lang-toggle:checked ~ main .ko{display:inline}
+  main .lang-switch .ko{display:none}
+  #lang-toggle:checked ~ main .lang-switch .en{display:none}
+  #lang-toggle:checked ~ main .lang-switch .ko{display:inline}
+
+  @media (max-width:640px){ figure{padding:10px 8px 6px} .evidence{padding:12px} }
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+
+<input type="checkbox" id="lang-toggle" aria-label="한국어 / English">
+<main class="wrap">
+  <header>
+    <div class="head-text">
+      <span class="eyebrow">src/frameworks/langgraph_agents/supply_chain · src/common/observability</span>
+      <h1><span class="en">Supply chain agents: four runtimes, one core, three signals</span><span class="ko">공급망 에이전트: 런타임 네 개, 코어 하나, 신호 세 개</span></h1>
+      <p class="sub"><span class="en">A supervisor reads the request and names one of three specialists. That logic exists in four runtimes that differ only in how the answer reaches the specialist and where state lives. The Temporal worker also reports traces, logs and metrics, and those three do not travel the same way.</span><span class="ko">슈퍼바이저가 요청을 읽고 전문가 셋 중 하나를 지명합니다. 이 로직은 네 런타임에 있고, 런타임마다 다른 것은 지명 결과가 전문가에게 전달되는 방식과 상태가 놓이는 곳뿐입니다. Temporal 워커는 트레이스, 로그, 메트릭도 내보내는데, 세 신호는 같은 방식으로 이동하지 않습니다.</span></p>
+    </div>
+    <label class="lang-switch" for="lang-toggle"><span class="en">한국어</span><span class="ko">EN</span></label>
+  </header>
+
+  <section>
+    <h2><span class="en">Four runtimes carry the same agents</span><span class="ko">런타임 네 개가 같은 에이전트를 실행한다</span></h2>
+    <p class="claim"><span class="en">The grey band is identical in every file. Only the four columns above it change.</span><span class="ko">회색 영역은 모든 파일에서 같고, 위의 네 열만 다릅니다.</span></p>
+    <figure>
+      <div class="scroll"><svg viewBox="0 0 1212 800" role="img" aria-label="Four runtimes (LangGraph, Temporal, Ray, Redis Streams) each carry a request from the supervisor to one of three specialists. The supervisor prompt, the three specialists and their tools are the same in all four; the transport between supervisor and specialist, the routing rule and the place the state lives are what differ.">
+<defs>
+<marker id="ar-ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--ink)"/></marker>
+<marker id="ar-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--ok)"/></marker>
+<marker id="ar-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--bad)"/></marker>
+<marker id="ar-dim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--ink-dim)"/></marker>
+</defs>
+<rect x="356" y="12" width="500" height="50" rx="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.3"/>
+<text class="en" x="606" y="33" text-anchor="middle" font-size="13.5" fill="var(--ink)" font-weight="700">Caller</text><text class="ko" x="606" y="33" text-anchor="middle" font-size="13.5" fill="var(--ink)" font-weight="700">호출자</text>
+<text x="606" y="51" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" fill="var(--ink-dim)">operation: dict · messages: [human message]</text>
+<line x1="606" y1="62" x2="606" y2="84" stroke="var(--ink)" stroke-width="1.5"/>
+<line x1="156" y1="84" x2="1056" y2="84" stroke="var(--ink)" stroke-width="1.5"/>
+<text class="en" x="620" y="78" text-anchor="start" font-size="11" fill="var(--ink-dim)">one of four runtimes carries it</text><text class="ko" x="620" y="78" text-anchor="start" font-size="11" fill="var(--ink-dim)">네 런타임 중 하나가 실행한다</text>
+<line x1="156" y1="84" x2="156" y2="104" stroke="var(--ink)" stroke-width="1.5" marker-end="url(#ar-ink)"/>
+<rect x="16" y="104" width="280" height="340" rx="10" fill="var(--surface-2)"/>
+<text x="30" y="130" text-anchor="start" font-size="15" fill="var(--ink)" font-weight="700">LangGraph</text>
+<text x="30" y="147" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" fill="var(--ink-dim)">supply_chain_logistics_multi_agent.py</text>
+<line x1="30" y1="157" x2="282" y2="157" stroke="var(--line)" stroke-width="1"/>
+<line x1="456" y1="84" x2="456" y2="104" stroke="var(--ink)" stroke-width="1.5" marker-end="url(#ar-ink)"/>
+<rect x="316" y="104" width="280" height="340" rx="10" fill="var(--surface-2)"/>
+<text x="330" y="130" text-anchor="start" font-size="15" fill="var(--ink)" font-weight="700">Temporal</text>
+<text x="330" y="147" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" fill="var(--ink-dim)">temporal_supply_chain_multi_agent.py</text>
+<line x1="330" y1="157" x2="582" y2="157" stroke="var(--line)" stroke-width="1"/>
+<line x1="756" y1="84" x2="756" y2="104" stroke="var(--ink)" stroke-width="1.5" marker-end="url(#ar-ink)"/>
+<rect x="616" y="104" width="280" height="340" rx="10" fill="var(--surface-2)"/>
+<text x="630" y="130" text-anchor="start" font-size="15" fill="var(--ink)" font-weight="700">Ray</text>
+<text x="630" y="147" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" fill="var(--ink-dim)">ray_supply_chain_multi_agent.py</text>
+<line x1="630" y1="157" x2="882" y2="157" stroke="var(--line)" stroke-width="1"/>
+<line x1="1056" y1="84" x2="1056" y2="104" stroke="var(--ink)" stroke-width="1.5" marker-end="url(#ar-ink)"/>
+<rect x="916" y="104" width="280" height="340" rx="10" fill="var(--surface-2)"/>
+<text x="930" y="130" text-anchor="start" font-size="15" fill="var(--ink)" font-weight="700">Redis Streams</text>
+<text x="930" y="147" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" fill="var(--ink-dim)">redis_streams_multi_agent_supply_chain.py</text>
+<line x1="930" y1="157" x2="1182" y2="157" stroke="var(--line)" stroke-width="1"/>
+<rect x="76" y="170" width="160" height="28" rx="6" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.3"/>
+<text x="156" y="189" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" fill="var(--ink)">supervisor_node</text>
+<polyline points="156,198 156,210 60,210 60,290" fill="none" stroke="var(--ink)" stroke-width="1.5"/>
+<line x1="60" y1="230" x2="86" y2="230" stroke="var(--ink)" stroke-width="1.5" marker-end="url(#ar-ink)"/>
+<rect x="86" y="218" width="150" height="24" rx="6" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.3"/>
+<text x="161" y="234" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" fill="var(--ink)">inventory</text>
+<text x="254" y="234" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" fill="var(--ink-dim)">→ END</text>
+<line x1="60" y1="260" x2="86" y2="260" stroke="var(--ink)" stroke-width="1.5" marker-end="url(#ar-ink)"/>
+<rect x="86" y="248" width="150" height="24" rx="6" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.3"/>
+<text x="161" y="264" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" fill="var(--ink)">transportation</text>
+<text x="254" y="264" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" fill="var(--ink-dim)">→ END</text>
+<line x1="60" y1="290" x2="86" y2="290" stroke="var(--ink)" stroke-width="1.5" marker-end="url(#ar-ink)"/>
+<rect x="86" y="278" width="150" height="24" rx="6" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.3"/>
+<text x="161" y="294" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" fill="var(--ink)">supplier</text>
+<text x="254" y="294" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" fill="var(--ink-dim)">→ END</text>
+<text x="156" y="326" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="var(--ink-dim)">add_conditional_edges(route_to_specialist)</text>
+<rect x="330" y="168" width="252" height="150" rx="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.2"/>
+<text x="344" y="187" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="var(--ink)" font-weight="700">SupplyChainWorkflow.run</text>
+<rect x="350" y="200" width="212" height="28" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.3"/>
+<text x="456" y="219" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" fill="var(--ink)">① supervisor_activity</text>
+<line x1="456" y1="228" x2="456" y2="256" stroke="var(--ink)" stroke-width="1.5" marker-end="url(#ar-ink)"/>
+<text x="466" y="247" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="var(--ink-dim)">agent_name</text>
+<rect x="350" y="256" width="212" height="28" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.3"/>
+<text x="456" y="275" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" fill="var(--ink)">② specialist_activity</text>
+<text class="en" x="456" y="307" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)">retry ×3 · timeout 60 s each</text><text class="ko" x="456" y="307" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)">재시도 3회 · 각 60초 제한</text>
+<rect x="650" y="170" width="212" height="28" rx="6" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.3"/>
+<text x="756" y="189" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" fill="var(--ink)">driver: supervisor_invoke()</text>
+<line x1="756" y1="198" x2="756" y2="224" stroke="var(--ink)" stroke-width="1.5" marker-end="url(#ar-ink)"/>
+<text x="766" y="215" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="var(--ink-dim)">get_or_create_actor</text>
+<rect x="650" y="224" width="212" height="28" rx="6" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.3"/>
+<text x="756" y="243" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" fill="var(--ink)">SessionManager (actor)</text>
+<line x1="756" y1="252" x2="756" y2="280" stroke="var(--ink)" stroke-width="1.5" marker-end="url(#ar-ink)"/>
+<text class="en" x="766" y="270" text-anchor="start" font-size="9.5" fill="var(--ink-dim)">spawns on first call</text><text class="ko" x="766" y="270" text-anchor="start" font-size="9.5" fill="var(--ink-dim)">첫 호출에서 생성</text>
+<rect x="658" y="294" width="212" height="44" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1"/>
+<rect x="654" y="290" width="212" height="44" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1"/>
+<rect x="650" y="286" width="212" height="44" rx="6" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.3"/>
+<text x="756" y="305" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" fill="var(--ink)" font-weight="700">SpecialistActor</text>
+<text x="756" y="321" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" fill="var(--ink-dim)">one per (operation_id, role)</text>
+<rect x="950" y="170" width="212" height="28" rx="6" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.3"/>
+<text x="1056" y="189" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" fill="var(--ink)">supervisor_publish()</text>
+<line x1="1056" y1="198" x2="1056" y2="214" stroke="var(--ink)" stroke-width="1.5" marker-end="url(#ar-ink)"/>
+<text x="1066" y="210" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="var(--ink-dim)">xadd</text>
+<rect x="950" y="214" width="212" height="24" rx="12" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.3"/>
+<text x="1056" y="230" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="var(--ink)">supply-chain-tasks</text>
+<line x1="1013" y1="238" x2="1013" y2="250" stroke="var(--ink)" stroke-width="1.5" marker-end="url(#ar-ink)"/>
+<rect x="950" y="250" width="126" height="18" rx="4" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.3"/>
+<text x="1013" y="263" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" fill="var(--ink)">inventory</text>
+<rect x="950" y="272" width="126" height="18" rx="4" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.3"/>
+<text x="1013" y="285" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" fill="var(--ink)">transportation</text>
+<rect x="950" y="294" width="126" height="18" rx="4" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.3"/>
+<text x="1013" y="307" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" fill="var(--ink)">supplier</text>
+<text x="1088" y="262" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="var(--ink-dim)">xread from id 0:</text>
+<text class="en" x="1088" y="275" text-anchor="start" font-size="9.5" fill="var(--ink-dim)">every consumer</text><text class="ko" x="1088" y="275" text-anchor="start" font-size="9.5" fill="var(--ink-dim)">모든 컨슈머가</text>
+<text class="en" x="1088" y="288" text-anchor="start" font-size="9.5" fill="var(--ink-dim)">sees every task,</text><text class="ko" x="1088" y="288" text-anchor="start" font-size="9.5" fill="var(--ink-dim)">모든 태스크를 보고</text>
+<text class="en" x="1088" y="301" text-anchor="start" font-size="9.5" fill="var(--ink-dim)">keeps its own</text><text class="ko" x="1088" y="301" text-anchor="start" font-size="9.5" fill="var(--ink-dim)">자기 역할만 처리</text>
+<line x1="1013" y1="316" x2="1013" y2="326" stroke="var(--ink)" stroke-width="1.5" marker-end="url(#ar-ink)"/>
+<text x="1023" y="324" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="var(--ink-dim)">xadd</text>
+<rect x="950" y="326" width="212" height="24" rx="12" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.3"/>
+<text x="1056" y="342" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="var(--ink)">supply-chain-responses</text>
+<text class="en" x="30" y="368" text-anchor="start" font-size="9.5" fill="var(--ink-dim)" font-weight="600" letter-spacing="0.08em">ROUTING</text><text class="ko" x="30" y="368" text-anchor="start" font-size="9.5" fill="var(--ink-dim)" font-weight="600" letter-spacing="0.08em">라우팅</text>
+<text class="en" x="30" y="382" text-anchor="start" font-size="11" fill="var(--ink)">conditional edge reads</text><text class="ko" x="30" y="382" text-anchor="start" font-size="11" fill="var(--ink)">조건부 엣지가</text>
+<text class="en" x="30" y="396" text-anchor="start" font-size="11" fill="var(--ink)">the supervisor&#x27;s reply</text><text class="ko" x="30" y="396" text-anchor="start" font-size="11" fill="var(--ink)">슈퍼바이저의 답을 읽는다</text>
+<rect x="30" y="404" width="252" height="34" rx="6" fill="var(--surface)" stroke="var(--line)" stroke-width="1"/>
+<text class="en" x="40" y="418" text-anchor="start" font-size="10.5" fill="var(--ink)">state: AgentState, in process memory</text><text class="ko" x="40" y="418" text-anchor="start" font-size="10.5" fill="var(--ink)">상태: AgentState, 프로세스 메모리</text>
+<text class="en" x="330" y="368" text-anchor="start" font-size="9.5" fill="var(--ink-dim)" font-weight="600" letter-spacing="0.08em">ROUTING</text><text class="ko" x="330" y="368" text-anchor="start" font-size="9.5" fill="var(--ink-dim)" font-weight="600" letter-spacing="0.08em">라우팅</text>
+<text class="en" x="330" y="382" text-anchor="start" font-size="11" fill="var(--ink)">workflow code passes agent_name</text><text class="ko" x="330" y="382" text-anchor="start" font-size="11" fill="var(--ink)">워크플로우 코드가 agent_name을</text>
+<text class="en" x="330" y="396" text-anchor="start" font-size="11" fill="var(--ink)">to the second activity</text><text class="ko" x="330" y="396" text-anchor="start" font-size="11" fill="var(--ink)">두 번째 액티비티에 넘긴다</text>
+<rect x="330" y="404" width="252" height="34" rx="6" fill="var(--surface)" stroke="var(--line)" stroke-width="1"/>
+<text class="en" x="340" y="418" text-anchor="start" font-size="10.5" fill="var(--ink)">state: Event History on the Temporal server</text><text class="ko" x="340" y="418" text-anchor="start" font-size="10.5" fill="var(--ink)">상태: Temporal 서버의 이벤트 히스토리</text>
+<text x="340" y="432" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="var(--ink-dim)">:7233 · queue supply-chain-queue</text>
+<text class="en" x="630" y="368" text-anchor="start" font-size="9.5" fill="var(--ink-dim)" font-weight="600" letter-spacing="0.08em">ROUTING</text><text class="ko" x="630" y="368" text-anchor="start" font-size="9.5" fill="var(--ink-dim)" font-weight="600" letter-spacing="0.08em">라우팅</text>
+<text class="en" x="630" y="382" text-anchor="start" font-size="11" fill="var(--ink)">driver picks the actor by</text><text class="ko" x="630" y="382" text-anchor="start" font-size="11" fill="var(--ink)">드라이버가 agent_name과</text>
+<text class="en" x="630" y="396" text-anchor="start" font-size="11" fill="var(--ink)">agent_name and session_id</text><text class="ko" x="630" y="396" text-anchor="start" font-size="11" fill="var(--ink)">session_id로 액터를 고른다</text>
+<rect x="630" y="404" width="252" height="34" rx="6" fill="var(--surface)" stroke="var(--line)" stroke-width="1"/>
+<text class="en" x="640" y="418" text-anchor="start" font-size="10.5" fill="var(--ink)">state: actor memory (internal_state)</text><text class="ko" x="640" y="418" text-anchor="start" font-size="10.5" fill="var(--ink)">상태: 액터 메모리 (internal_state)</text>
+<text class="en" x="930" y="368" text-anchor="start" font-size="9.5" fill="var(--ink-dim)" font-weight="600" letter-spacing="0.08em">ROUTING</text><text class="ko" x="930" y="368" text-anchor="start" font-size="9.5" fill="var(--ink-dim)" font-weight="600" letter-spacing="0.08em">라우팅</text>
+<text class="en" x="930" y="382" text-anchor="start" font-size="11" fill="var(--ink)">the task carries an agent field;</text><text class="ko" x="930" y="382" text-anchor="start" font-size="11" fill="var(--ink)">태스크의 agent 필드를 보고</text>
+<text class="en" x="930" y="396" text-anchor="start" font-size="11" fill="var(--ink)">each consumer keeps its own</text><text class="ko" x="930" y="396" text-anchor="start" font-size="11" fill="var(--ink)">각 컨슈머가 자기 것만 취한다</text>
+<rect x="930" y="404" width="252" height="34" rx="6" fill="var(--surface)" stroke="var(--line)" stroke-width="1"/>
+<text class="en" x="940" y="418" text-anchor="start" font-size="10.5" fill="var(--ink)">state: entries in two Redis streams</text><text class="ko" x="940" y="418" text-anchor="start" font-size="10.5" fill="var(--ink)">상태: Redis 스트림 두 개의 항목</text>
+<text x="940" y="432" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="var(--ink-dim)">:6379</text>
+<line x1="156" y1="444" x2="156" y2="462" stroke="var(--ink)" stroke-width="1.5"/>
+<line x1="456" y1="444" x2="456" y2="462" stroke="var(--ink)" stroke-width="1.5"/>
+<line x1="756" y1="444" x2="756" y2="462" stroke="var(--ink)" stroke-width="1.5"/>
+<line x1="1056" y1="444" x2="1056" y2="462" stroke="var(--ink)" stroke-width="1.5"/>
+<line x1="156" y1="462" x2="1056" y2="462" stroke="var(--ink)" stroke-width="1.5"/>
+<line x1="606" y1="462" x2="606" y2="486" stroke="var(--ink)" stroke-width="1.5" marker-end="url(#ar-ink)"/>
+<text class="en" x="620" y="478" text-anchor="start" font-size="11" fill="var(--ink-dim)">every runtime runs the same two steps</text><text class="ko" x="620" y="478" text-anchor="start" font-size="11" fill="var(--ink-dim)">네 런타임 모두 같은 두 단계를 실행한다</text>
+<rect x="16" y="486" width="1180" height="196" rx="10" fill="var(--surface-2)"/>
+<text class="en" x="32" y="508" text-anchor="start" font-size="11" fill="var(--ink-dim)" font-weight="600" letter-spacing="0.04em">SAME IN ALL FOUR · copied into each file, not imported</text><text class="ko" x="32" y="508" text-anchor="start" font-size="11" fill="var(--ink-dim)" font-weight="600" letter-spacing="0.04em">네 곳 모두 동일 · 파일마다 복사해 둔 것, import 아님</text>
+<rect x="32" y="526" width="244" height="108" rx="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.3"/>
+<text class="en" x="154" y="546" text-anchor="middle" font-size="13" fill="var(--ink)" font-weight="700">Supervisor</text><text class="ko" x="154" y="546" text-anchor="middle" font-size="13" fill="var(--ink)" font-weight="700">슈퍼바이저</text>
+<text x="154" y="566" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="var(--ink)">llm.invoke(supervisor_prompt)</text>
+<text x="154" y="584" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" fill="var(--ink-dim)">replies with one name:</text>
+<text x="154" y="599" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="var(--ink)">&quot;inventory&quot; | &quot;transportation&quot;</text>
+<text x="154" y="614" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="var(--ink)">| &quot;supplier&quot;</text>
+<line x1="276" y1="580" x2="344" y2="580" stroke="var(--ink)" stroke-width="1.5" marker-end="url(#ar-ink)"/>
+<text class="en" x="310" y="570" text-anchor="middle" font-size="10" fill="var(--ink-dim)">role name</text><text class="ko" x="310" y="570" text-anchor="middle" font-size="10" fill="var(--ink-dim)">역할 이름</text>
+<rect x="346" y="520" width="838" height="120" rx="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.2"/>
+<text class="en" x="360" y="538" text-anchor="start" font-size="11" fill="var(--ink-dim)" font-weight="600">Specialists: only the one that was named runs</text><text class="ko" x="360" y="538" text-anchor="start" font-size="11" fill="var(--ink-dim)" font-weight="600">전문가: 지명된 하나만 실행된다</text>
+<rect x="360" y="548" width="258" height="78" rx="6" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1"/>
+<text x="372" y="570" text-anchor="start" font-size="13" fill="var(--ink)" font-weight="700">inventory</text>
+<text class="en" x="606" y="570" text-anchor="end" font-size="11" fill="var(--ink-dim)">7 tools</text><text class="ko" x="606" y="570" text-anchor="end" font-size="11" fill="var(--ink-dim)">도구 7개</text>
+<text x="372" y="592" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="var(--ink)">manage_inventory · forecast_demand</text>
+<text x="372" y="608" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="var(--ink-dim)">+ 4 more, send_logistics_response</text>
+<rect x="632" y="548" width="258" height="78" rx="6" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1"/>
+<text x="644" y="570" text-anchor="start" font-size="13" fill="var(--ink)" font-weight="700">transportation</text>
+<text class="en" x="878" y="570" text-anchor="end" font-size="11" fill="var(--ink-dim)">8 tools</text><text class="ko" x="878" y="570" text-anchor="end" font-size="11" fill="var(--ink-dim)">도구 8개</text>
+<text x="644" y="592" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="var(--ink)">track_shipments · arrange_shipping</text>
+<text x="644" y="608" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="var(--ink-dim)">+ 5 more, send_logistics_response</text>
+<rect x="904" y="548" width="258" height="78" rx="6" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1"/>
+<text x="916" y="570" text-anchor="start" font-size="13" fill="var(--ink)" font-weight="700">supplier</text>
+<text class="en" x="1150" y="570" text-anchor="end" font-size="11" fill="var(--ink-dim)">3 tools</text><text class="ko" x="1150" y="570" text-anchor="end" font-size="11" fill="var(--ink-dim)">도구 3개</text>
+<text x="916" y="592" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="var(--ink)">evaluate_suppliers · handle_compliance</text>
+<text x="916" y="608" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="var(--ink-dim)">+ send_logistics_response</text>
+<text class="en" x="420" y="664" text-anchor="start" font-size="11" fill="var(--ink-dim)">Each one: bind_tools, then llm.invoke; if it asks for tools, run them and invoke again</text><text class="ko" x="420" y="664" text-anchor="start" font-size="11" fill="var(--ink-dim)">각 전문가: bind_tools 후 llm.invoke, 도구를 요청하면 실행하고 다시 invoke</text>
+<line x1="154" y1="634" x2="154" y2="716" stroke="var(--ink)" stroke-width="1.5" marker-end="url(#ar-ink)"/>
+<text class="en" x="164" y="700" text-anchor="start" font-size="10" fill="var(--ink-dim)">llm.invoke</text><text class="ko" x="164" y="700" text-anchor="start" font-size="10" fill="var(--ink-dim)">llm.invoke</text>
+<line x1="380" y1="640" x2="380" y2="716" stroke="var(--ink)" stroke-width="1.5" marker-end="url(#ar-ink)"/>
+<text class="en" x="390" y="700" text-anchor="start" font-size="10" fill="var(--ink-dim)">llm.invoke</text><text class="ko" x="390" y="700" text-anchor="start" font-size="10" fill="var(--ink-dim)">llm.invoke</text>
+<line x1="1100" y1="640" x2="1100" y2="716" stroke="var(--ink)" stroke-width="1.5" marker-end="url(#ar-ink)"/>
+<text class="en" x="1110" y="700" text-anchor="start" font-size="10" fill="var(--ink-dim)">per tool call</text><text class="ko" x="1110" y="700" text-anchor="start" font-size="10" fill="var(--ink-dim)">도구 호출마다</text>
+<rect x="32" y="716" width="560" height="72" rx="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.3"/>
+<text x="46" y="738" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="12" fill="var(--ink)" font-weight="700">build_chat_model()</text>
+<text x="214" y="738" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" fill="var(--ink-dim)">src/common/llm.py</text>
+<text x="46" y="758" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="var(--ink)">LLM_PROVIDER=openai → gpt-4o · temperature 0.0</text>
+<text x="46" y="774" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="var(--ink)">LLM_PROVIDER=gemini → $GEMINI_MODEL (default gemini-flash-latest)</text>
+<line x1="592" y1="752" x2="640" y2="752" stroke="var(--ink)" stroke-width="1.5" marker-end="url(#ar-ink)"/>
+<text class="en" x="616" y="744" text-anchor="middle" font-size="10" fill="var(--ink-dim)">HTTPS</text><text class="ko" x="616" y="744" text-anchor="middle" font-size="10" fill="var(--ink-dim)">HTTPS</text>
+<rect x="640" y="730" width="210" height="44" rx="8" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.3"/>
+<text x="745" y="749" text-anchor="middle" font-size="12" fill="var(--ink)" font-weight="600">OpenAI or Gemini API</text>
+<text class="en" x="745" y="765" text-anchor="middle" font-size="10" fill="var(--ink-dim)">external</text><text class="ko" x="745" y="765" text-anchor="middle" font-size="10" fill="var(--ink-dim)">외부 서비스</text>
+<rect x="900" y="716" width="296" height="72" rx="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.3"/>
+<text x="914" y="738" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="12" fill="var(--ink)" font-weight="700">log_to_loki()</text>
+<text x="914" y="758" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="var(--ink-dim)">src/common/observability/loki_logger.py</text>
+<text x="914" y="774" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="var(--ink)">POST :3100/loki/api/v1/push</text>
+</svg>
+</div>
+      <figcaption><span class="en"><b>Each file carries its own copy</b> of the supervisor prompt, the three specialists and their tools (7, 8 and 3). Only <code>build_chat_model()</code> and <code>log_to_loki()</code> are imported. The runtimes differ in three ways: how the supervisor's answer reaches a specialist, who applies the routing rule, and where the state lives. In Redis Streams there is no consumer group, so all three consumers read every task and two of them skip it.</span><span class="ko"><b>파일마다 복사본을 가집니다.</b> 슈퍼바이저 프롬프트, 전문가 셋, 도구(7개, 8개, 3개)가 모두 그렇습니다. import하는 것은 <code>build_chat_model()</code>과 <code>log_to_loki()</code>뿐입니다. 런타임은 세 가지가 다릅니다. 슈퍼바이저의 답이 전문가에게 닿는 방식, 라우팅 규칙을 적용하는 주체, 상태가 놓이는 곳입니다. Redis Streams에는 컨슈머 그룹이 없어서 컨슈머 셋이 모든 태스크를 읽고 그중 둘은 건너뜁니다.</span></figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2><span class="en">Logs and traces are pushed, metrics are pulled</span><span class="ko">로그와 트레이스는 밀어 보내고, 메트릭은 당겨 간다</span></h2>
+    <p class="claim"><span class="en">Only the metrics path needs the worker to listen on a port. The trace path is the one that does not work as the repo is written.</span><span class="ko">메트릭 경로만 워커가 포트를 열어 두어야 합니다. 트레이스 경로는 레포가 쓰인 그대로는 동작하지 않습니다.</span></p>
+    <figure>
+      <div class="scroll"><svg viewBox="0 0 1212 546" role="img" aria-label="The worker pushes logs to Loki and tries to push traces to Tempo, while Prometheus pulls metrics from a port the worker opens. Grafana reads from Prometheus through a provisioned datasource; Loki and Tempo datasources are not provisioned. With the repo as written the trace arrow delivers nothing.">
+<defs>
+<marker id="ar-ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--ink)"/></marker>
+<marker id="ar-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--ok)"/></marker>
+<marker id="ar-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--bad)"/></marker>
+<marker id="ar-dim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--ink-dim)"/></marker>
+</defs>
+<rect x="16" y="12" width="340" height="520" rx="10" fill="var(--surface-2)"/>
+<text class="en" x="32" y="36" text-anchor="start" font-size="11" fill="var(--ink-dim)" font-weight="600" letter-spacing="0.06em">WORKER PROCESS · host</text><text class="ko" x="32" y="36" text-anchor="start" font-size="11" fill="var(--ink-dim)" font-weight="600" letter-spacing="0.06em">워커 프로세스 · 호스트</text>
+<rect x="36" y="64" width="300" height="104" rx="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.3"/>
+<text class="en" x="50" y="86" text-anchor="start" font-size="13" fill="var(--ink)" font-weight="700">Traces</text><text class="ko" x="50" y="86" text-anchor="start" font-size="13" fill="var(--ink)" font-weight="700">트레이스</text>
+<text x="50" y="106" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="var(--ink)">Traceloop.init(disable_batch=True)</text>
+<text class="en" x="50" y="124" text-anchor="start" font-size="10.5" fill="var(--ink-dim)">one export per span, no batching</text><text class="ko" x="50" y="124" text-anchor="start" font-size="10.5" fill="var(--ink-dim)">스팬마다 바로 전송, 배치 없음</text>
+<text x="50" y="144" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="var(--bad)">env: OTEL_EXPORTER_OTLP_ENDPOINT</text>
+<text x="50" y="158" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="var(--bad)">(no TRACELOOP_BASE_URL)</text>
+<rect x="36" y="204" width="300" height="84" rx="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.3"/>
+<text class="en" x="50" y="226" text-anchor="start" font-size="13" fill="var(--ink)" font-weight="700">Logs</text><text class="ko" x="50" y="226" text-anchor="start" font-size="13" fill="var(--ink)" font-weight="700">로그</text>
+<text x="50" y="246" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="var(--ink)">log_to_loki(label, message)</text>
+<text class="en" x="50" y="266" text-anchor="start" font-size="10.5" fill="var(--ink-dim)">called inside every tool, sync HTTP POST</text><text class="ko" x="50" y="266" text-anchor="start" font-size="10.5" fill="var(--ink-dim)">모든 도구 안에서 동기 HTTP POST</text>
+<text class="en" x="36" y="322" text-anchor="start" font-size="10.5" fill="var(--ink-dim)">Also: long-polls Temporal :7233</text><text class="ko" x="36" y="322" text-anchor="start" font-size="10.5" fill="var(--ink-dim)">그 밖에: Temporal :7233 롱폴링,</text>
+<text class="en" x="36" y="337" text-anchor="start" font-size="10.5" fill="var(--ink-dim)">and calls the LLM API (figure 1).</text><text class="ko" x="36" y="337" text-anchor="start" font-size="10.5" fill="var(--ink-dim)">LLM API 호출 (그림 1)</text>
+<rect x="36" y="400" width="300" height="104" rx="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.3"/>
+<text class="en" x="50" y="422" text-anchor="start" font-size="13" fill="var(--ink)" font-weight="700">Metrics</text><text class="ko" x="50" y="422" text-anchor="start" font-size="13" fill="var(--ink)" font-weight="700">메트릭</text>
+<text x="50" y="442" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="var(--ink)">build_temporal_runtime()</text>
+<text x="50" y="460" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="var(--ink)">PrometheusConfig(0.0.0.0:9464)</text>
+<text class="en" x="50" y="480" text-anchor="start" font-size="10" fill="var(--ink-dim)">Temporal runtime only; the other three send no metrics</text><text class="ko" x="50" y="480" text-anchor="start" font-size="10" fill="var(--ink-dim)">Temporal 런타임만, 나머지 셋은 메트릭 없음</text>
+<rect x="326" y="434" width="56" height="22" rx="11" fill="var(--surface)" stroke="var(--ok)" stroke-width="1.6"/>
+<text x="354" y="449" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="var(--ok)" font-weight="700">:9464</text>
+<rect x="500" y="12" width="696" height="520" rx="10" fill="var(--surface-2)"/>
+<text x="516" y="36" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" fill="var(--ink-dim)" font-weight="600">docker-compose.yaml</text>
+<rect x="530" y="64" width="250" height="104" rx="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.3"/>
+<text x="544" y="86" text-anchor="start" font-size="13" fill="var(--ink)" font-weight="700">Tempo</text>
+<text x="544" y="106" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="var(--ink)">:4317 OTLP/gRPC receiver</text>
+<text x="544" y="122" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="var(--ink)">:3200 query API</text>
+<text class="en" x="544" y="144" text-anchor="start" font-size="10.5" fill="var(--ink-dim)">local filesystem storage</text><text class="ko" x="544" y="144" text-anchor="start" font-size="10.5" fill="var(--ink-dim)">로컬 파일시스템 저장</text>
+<rect x="530" y="204" width="250" height="84" rx="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.3"/>
+<text x="544" y="226" text-anchor="start" font-size="13" fill="var(--ink)" font-weight="700">Loki</text>
+<text x="544" y="246" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="var(--ink)">:3100 push API</text>
+<text x="544" y="264" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="var(--ink-dim)">label app = tool.&lt;name&gt;</text>
+<rect x="530" y="312" width="250" height="58" rx="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.3"/>
+<text x="544" y="334" text-anchor="start" font-size="12" fill="var(--ink)" font-weight="700">promtail</text>
+<text x="544" y="354" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="var(--ink-dim)">/var/log/*.log</text>
+<line x1="655" y1="312" x2="655" y2="290" stroke="var(--ink)" stroke-width="1.5" marker-end="url(#ar-ink)"/>
+<text class="en" x="665" y="305" text-anchor="start" font-size="10" fill="var(--ink-dim)">push</text><text class="ko" x="665" y="305" text-anchor="start" font-size="10" fill="var(--ink-dim)">전송</text>
+<rect x="530" y="400" width="250" height="104" rx="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.3"/>
+<text x="544" y="422" text-anchor="start" font-size="13" fill="var(--ink)" font-weight="700">Prometheus</text>
+<text x="544" y="442" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="var(--ink)">:9090</text>
+<text x="544" y="460" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="var(--ink)">scrape_interval: 15s</text>
+<text x="544" y="478" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="var(--ink-dim)">job: temporal-worker</text>
+<rect x="900" y="64" width="280" height="440" rx="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.3"/>
+<text x="914" y="88" text-anchor="start" font-size="14" fill="var(--ink)" font-weight="700">Grafana</text>
+<text x="988" y="88" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" fill="var(--ink-dim)">:3000</text>
+<text class="en" x="914" y="124" text-anchor="start" font-size="9.5" fill="var(--ok)" font-weight="600" letter-spacing="0.08em">PROVISIONED</text><text class="ko" x="914" y="124" text-anchor="start" font-size="9.5" fill="var(--ok)" font-weight="600" letter-spacing="0.08em">자동 구성됨</text>
+<text class="en" x="914" y="144" text-anchor="start" font-size="11.5" fill="var(--ink)">datasource: Prometheus</text><text class="ko" x="914" y="144" text-anchor="start" font-size="11.5" fill="var(--ink)">데이터소스: Prometheus</text>
+<text x="914" y="160" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" fill="var(--ink-dim)">uid: prometheus</text>
+<text class="en" x="914" y="184" text-anchor="start" font-size="11.5" fill="var(--ink)">dashboard: temporal-worker.json</text><text class="ko" x="914" y="184" text-anchor="start" font-size="11.5" fill="var(--ink)">대시보드: temporal-worker.json</text>
+<text class="en" x="914" y="200" text-anchor="start" font-size="10.5" fill="var(--ink-dim)">19 panels, task_queue variable</text><text class="ko" x="914" y="200" text-anchor="start" font-size="10.5" fill="var(--ink-dim)">패널 19개, task_queue 변수</text>
+<text class="en" x="914" y="244" text-anchor="start" font-size="9.5" fill="var(--bad)" font-weight="600" letter-spacing="0.08em">NOT PROVISIONED</text><text class="ko" x="914" y="244" text-anchor="start" font-size="9.5" fill="var(--bad)" font-weight="600" letter-spacing="0.08em">구성되지 않음</text>
+<text class="en" x="914" y="264" text-anchor="start" font-size="11.5" fill="var(--ink)">datasources: Loki, Tempo</text><text class="ko" x="914" y="264" text-anchor="start" font-size="11.5" fill="var(--ink)">데이터소스: Loki, Tempo</text>
+<text class="en" x="914" y="282" text-anchor="start" font-size="10.5" fill="var(--ink-dim)">add them in the UI to read</text><text class="ko" x="914" y="282" text-anchor="start" font-size="10.5" fill="var(--ink-dim)">UI에서 직접 추가해야</text>
+<text class="en" x="914" y="296" text-anchor="start" font-size="10.5" fill="var(--ink-dim)">logs and traces</text><text class="ko" x="914" y="296" text-anchor="start" font-size="10.5" fill="var(--ink-dim)">로그와 트레이스를 볼 수 있다</text>
+<line x1="336" y1="116" x2="528" y2="116" stroke="var(--bad)" stroke-width="1.8" stroke-dasharray="6 5" marker-end="url(#ar-bad)"/>
+<text class="en" x="432" y="98" text-anchor="middle" font-size="11" fill="var(--bad)" font-weight="600">OTLP: nothing lands</text><text class="ko" x="432" y="98" text-anchor="middle" font-size="11" fill="var(--bad)" font-weight="600">OTLP: 도착하지 않음</text>
+<text x="432" y="136" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="var(--bad)">needs TRACELOOP_BASE_URL</text>
+<circle cx="432" cy="116" r="9" fill="var(--surface-2)" stroke="var(--bad)" stroke-width="1.6"/><path d="M427.5,111.5 L436.5,120.5 M436.5,111.5 L427.5,120.5" stroke="var(--bad)" stroke-width="1.8" fill="none"/>
+<line x1="336" y1="246" x2="528" y2="246" stroke="var(--ink)" stroke-width="1.5" marker-end="url(#ar-ink)"/>
+<text class="en" x="432" y="238" text-anchor="middle" font-size="11" fill="var(--ink)">push, per tool call</text><text class="ko" x="432" y="238" text-anchor="middle" font-size="11" fill="var(--ink)">푸시, 도구 호출마다</text>
+<text x="432" y="266" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="var(--ink-dim)">/loki/api/v1/push</text>
+<line x1="528" y1="445" x2="384" y2="445" stroke="var(--ok)" stroke-width="1.5" marker-end="url(#ar-ok)"/>
+<text class="en" x="456" y="432" text-anchor="middle" font-size="11" fill="var(--ok)" font-weight="600">scrape every 15 s</text><text class="ko" x="456" y="432" text-anchor="middle" font-size="11" fill="var(--ok)" font-weight="600">15초마다 스크레이프</text>
+<text x="456" y="464" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9" fill="var(--ink-dim)">host.docker.internal:9464</text>
+<line x1="900" y1="116" x2="782" y2="116" stroke="var(--ink-dim)" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#ar-dim)"/>
+<text class="en" x="840" y="108" text-anchor="middle" font-size="10" fill="var(--ink-dim)">add by hand</text><text class="ko" x="840" y="108" text-anchor="middle" font-size="10" fill="var(--ink-dim)">직접 추가</text>
+<line x1="900" y1="246" x2="782" y2="246" stroke="var(--ink-dim)" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#ar-dim)"/>
+<text class="en" x="840" y="238" text-anchor="middle" font-size="10" fill="var(--ink-dim)">add by hand</text><text class="ko" x="840" y="238" text-anchor="middle" font-size="10" fill="var(--ink-dim)">직접 추가</text>
+<line x1="900" y1="452" x2="782" y2="452" stroke="var(--ok)" stroke-width="1.5" marker-end="url(#ar-ok)"/>
+<text class="en" x="840" y="444" text-anchor="middle" font-size="10.5" fill="var(--ok)" font-weight="600">queries</text><text class="ko" x="840" y="444" text-anchor="middle" font-size="10.5" fill="var(--ok)" font-weight="600">쿼리</text>
+</svg>
+</div>
+      <figcaption><span class="en"><b>Logs</b> go straight from each tool call to Loki. <b>Metrics</b> exist only in the Temporal runtime: Prometheus scrapes the worker's port 9464 every 15 seconds, through <code>host.docker.internal</code> because the worker runs on the host. <b>Traces</b> are meant to reach Tempo on 4317 but never do (table below). Grafana ships with the Prometheus datasource and the Temporal dashboard; Loki and Tempo have no datasource until someone adds one.</span><span class="ko"><b>로그</b>는 도구를 호출할 때마다 Loki로 바로 갑니다. <b>메트릭</b>은 Temporal 런타임에만 있습니다. 워커가 호스트에서 돌기 때문에 Prometheus가 <code>host.docker.internal</code>을 거쳐 15초마다 워커의 9464 포트를 스크레이프합니다. <b>트레이스</b>는 Tempo 4317로 가야 하지만 도착하지 않습니다(아래 표). Grafana에는 Prometheus 데이터소스와 Temporal 대시보드가 들어 있고, Loki와 Tempo는 누군가 추가하기 전까지 데이터소스가 없습니다.</span></figcaption>
+    </figure>
+    <div class="key"><span class="item"><svg width="38" height="12" viewBox="0 0 38 12" aria-hidden="true"><line x1="1" y1="6" x2="30" y2="6" stroke="var(--ink)" stroke-width="1.8"/><path d="M29,1.5 L37,6 L29,10.5 z" fill="var(--ink)"/></svg><span><span class="en">push: the sender opens the connection</span><span class="ko">푸시: 보내는 쪽이 연결을 연다</span></span></span><span class="item"><svg width="38" height="12" viewBox="0 0 38 12" aria-hidden="true"><line x1="1" y1="6" x2="30" y2="6" stroke="var(--ok)" stroke-width="1.8"/><path d="M29,1.5 L37,6 L29,10.5 z" fill="var(--ok)"/></svg><span><span class="en">pull: the arrow points at the source being read</span><span class="ko">풀: 읽히는 쪽을 가리킨다</span></span></span><span class="item"><svg width="38" height="12" viewBox="0 0 38 12" aria-hidden="true"><line x1="1" y1="6" x2="30" y2="6" stroke="var(--bad)" stroke-width="1.8" stroke-dasharray="6 5"/><path d="M29,1.5 L37,6 L29,10.5 z" fill="var(--bad)"/></svg><span><span class="en">configured, but nothing arrives</span><span class="ko">설정돼 있지만 아무것도 도착하지 않음</span></span></span><span class="item"><svg width="38" height="12" viewBox="0 0 38 12" aria-hidden="true"><line x1="1" y1="6" x2="30" y2="6" stroke="var(--ink-dim)" stroke-width="1.8" stroke-dasharray="4 4"/><path d="M29,1.5 L37,6 L29,10.5 z" fill="var(--ink-dim)"/></svg><span><span class="en">possible, set up by hand</span><span class="ko">가능하지만 직접 설정해야 함</span></span></span></div>
+
+    <div class="evidence">
+      <h3><span class="en">Why the trace arrow is red: three Traceloop settings against a real Tempo</span><span class="ko">트레이스 화살표가 빨간 이유: 실제 Tempo에 세 가지 Traceloop 설정을 시험함</span></h3>
+      <div class="tbl"><table>
+        <thead><tr>
+          <th><span class="en">Setting</span><span class="ko">설정</span></th>
+          <th><span class="en">What Traceloop does</span><span class="ko">Traceloop의 동작</span></th>
+          <th><span class="en">Traces in Tempo</span><span class="ko">Tempo의 트레이스</span></th>
+        </tr></thead>
+        <tbody>
+          <tr><td><code>OTEL_EXPORTER_OTLP_ENDPOINT</code> <span class="en">only (how every file is written)</span><span class="ko">만 설정 (모든 파일이 이렇게 작성됨)</span></td>
+              <td><span class="en"><code>init()</code> prints &quot;Missing Traceloop API key&quot; and returns. No exporter is created.</span><span class="ko"><code>init()</code>이 &quot;Missing Traceloop API key&quot;를 출력하고 끝납니다. 익스포터가 만들어지지 않습니다.</span></td>
+              <td class="n zero">0</td></tr>
+          <tr><td><code>TRACELOOP_BASE_URL=http://localhost:4317</code></td>
+              <td><span class="en">An HTTP exporter POSTs <code>/v1/traces</code> to a gRPC port. The connection is reset.</span><span class="ko">HTTP 익스포터가 gRPC 포트로 <code>/v1/traces</code>를 POST합니다. 연결이 끊깁니다.</span></td>
+              <td class="n zero">0</td></tr>
+          <tr><td><code>TRACELOOP_BASE_URL=localhost:4317</code></td>
+              <td><span class="en">No scheme, so Traceloop picks the gRPC exporter.</span><span class="ko">스킴이 없어서 Traceloop이 gRPC 익스포터를 고릅니다.</span></td>
+              <td class="n one">1</td></tr>
+        </tbody>
+      </table></div>
+      <p><span class="en">Run with traceloop-sdk 0.49.5 (the version in <code>uv.lock</code>) against Tempo 2.7.0 started from <code>tempo-config.yaml</code>, on one host. Not tested: Docker. Tempo logs its OTLP receiver as <code>localhost:4317</code>; inside a container that address is loopback only, so the published port may not reach it.</span><span class="ko"><code>uv.lock</code>에 고정된 traceloop-sdk 0.49.5를, <code>tempo-config.yaml</code>로 띄운 Tempo 2.7.0에 대고 한 호스트에서 실행했습니다. 시험하지 않은 것은 Docker입니다. Tempo는 OTLP 수신기를 <code>localhost:4317</code>로 로그에 남기는데, 컨테이너 안에서 이 주소는 루프백 전용이라 공개한 포트가 닿지 않을 수 있습니다.</span></p>
+    </div>
+  </section>
+</main>
+
+</body></html>
