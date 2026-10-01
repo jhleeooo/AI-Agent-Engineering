@@ -77,6 +77,10 @@
   .sub{font-size:16px}
   .claim{font-size:15px}
   figcaption{font-size:15px}
+  .ways{list-style:none;margin:10px 2px 4px;padding:0;display:grid;gap:8px;max-width:90ch}
+  .ways li{display:grid;grid-template-columns:132px 1fr;gap:12px;align-items:baseline;font-size:15px;color:var(--ink);line-height:1.5}
+  .tag{display:inline-block;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:12.5px;font-weight:600;color:var(--ink);background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:2px 8px;text-align:center;white-space:nowrap}
+  @media (max-width:520px){.ways li{grid-template-columns:1fr;gap:4px}.tag{justify-self:start}}
   .foot{margin-top:28px;font-size:13.5px;color:var(--ink-dim);max-width:84ch;line-height:1.6}
 </style>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap">
@@ -138,7 +142,8 @@
 <line x1="650" y1="346" x2="650" y2="316" stroke="var(--ink-dim)" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#ar-dim)"/>
 </svg>
 </div>
-      <figcaption><span class="en">The manager only decides <b>who</b> should handle the request. The person picked does the work with their own set of tools and sends back the answer. The project builds this same team four different ways: one person doing everything in order, a head office that keeps a log so work can resume after a failure, one dedicated staff member per customer, and a notice board where everyone reads every note. The manager and the three people are the same in all four.</span><span class="ko">매니저는 <b>누가</b> 처리할지만 정합니다. 지명된 담당자가 자기 도구로 일을 하고 답변을 돌려줍니다. 이 프로젝트는 같은 팀을 네 가지 방식으로 만들어 두었습니다. 한 사람이 순서대로 다 하는 방식, 본사가 기록을 남겨 실패해도 이어서 하는 방식, 손님마다 전담 직원을 두는 방식, 모두가 게시판의 쪽지를 전부 읽는 방식입니다. 매니저와 담당자 셋은 네 방식 모두 같습니다.</span></figcaption>
+      <figcaption><span class="en">The manager only decides <b>who</b> should handle the request. The person picked does the work with their own set of tools and sends back the answer. The project builds this same team four different ways, named below. The manager and the three people are the same in all four.</span><span class="ko">매니저는 <b>누가</b> 처리할지만 정합니다. 지명된 담당자가 자기 도구로 일을 하고 답변을 돌려줍니다. 이 프로젝트는 같은 팀을 네 가지 방식으로 만들어 두었고, 이름은 아래와 같습니다. 매니저와 담당자 셋은 네 방식 모두 같습니다.</span></figcaption>
+      <ul class="ways"><li><span class="tag">LangGraph</span><span><span class="en">One person does everything in order.</span><span class="ko">한 사람이 순서대로 다 한다.</span></span></li><li><span class="tag">Temporal</span><span><span class="en">A head office keeps a log, so work can resume after a failure.</span><span class="ko">본사가 기록을 남겨서, 실패해도 이어서 한다.</span></span></li><li><span class="tag">Ray</span><span><span class="en">One dedicated staff member per customer.</span><span class="ko">손님마다 전담 직원을 둔다.</span></span></li><li><span class="tag">Redis Streams</span><span><span class="en">A notice board: everyone reads every note and keeps their own.</span><span class="ko">게시판에 쪽지를 붙이면 모두 읽고 자기 것만 가져간다.</span></span></li></ul>
     </figure>
   </section>
 
