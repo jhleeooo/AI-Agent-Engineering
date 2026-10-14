@@ -1,0 +1,203 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Supply Chain Stack Checklist</title>
+<style>
+  :root{
+    --bg:#eef0ef; --surface:#ffffff; --surface-2:#e1e6e4; --ink:#1b2422; --ink-dim:#58635f;
+    --line:#c9d1ce; --bad:#a84a24; --ok:#2f6b4e;
+    --shadow:0 1px 2px rgba(20,30,26,.05),0 6px 18px rgba(20,30,26,.05);
+    color-scheme:light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#121614; --surface:#1a201d; --surface-2:#212925; --ink:#e6ebe8; --ink-dim:#96a39d;
+      --line:#333c37; --bad:#e2895a; --ok:#6fbd94;
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.3);
+      color-scheme:dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#121614; --surface:#1a201d; --surface-2:#212925; --ink:#e6ebe8; --ink-dim:#96a39d;
+    --line:#333c37; --bad:#e2895a; --ok:#6fbd94;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.3);
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  body{background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans","Noto Sans KR",system-ui,sans-serif}
+  main.wrap{display:block;max-width:1240px;margin:0 auto;padding:28px 16px 48px}
+  code,.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.92em}
+
+  header{margin-bottom:8px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+  .head-text{flex:1;min-width:240px}
+  .eyebrow{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.06em;color:var(--ink-dim);text-transform:uppercase}
+  h1{margin:2px 0 8px;font-size:clamp(22px,3.4vw,30px);font-weight:700;letter-spacing:-.01em;text-wrap:balance}
+  .sub{margin:0;color:var(--ink-dim);font-size:14.5px;max-width:78ch;line-height:1.6}
+
+  .lang-switch{flex:none;display:inline-flex;align-items:center;font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.02em;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 14px;cursor:pointer;box-shadow:var(--shadow);user-select:none}
+  .lang-switch:hover{border-color:var(--bad)}
+  #lang-toggle:focus-visible ~ main .lang-switch{outline:2px solid var(--ink);outline-offset:2px}
+  #lang-toggle{position:absolute;opacity:0;pointer-events:none}
+
+  section{margin-top:34px}
+  h2{margin:0 0 4px;font-size:clamp(17px,2.4vw,21px);font-weight:700;text-wrap:balance}
+  .claim{margin:0;color:var(--ink-dim);font-size:14px;line-height:1.55;max-width:84ch}
+
+  figure{margin:14px 0 0;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 14px 8px;box-shadow:var(--shadow)}
+  .scroll{overflow-x:auto}
+  .scroll svg{display:block;width:100%;min-width:900px;height:auto;font-family:"IBM Plex Sans","Noto Sans KR",system-ui,sans-serif}
+  figcaption{margin:12px 2px 4px;font-size:13.5px;color:var(--ink-dim);line-height:1.6;max-width:90ch}
+  figcaption b{color:var(--ink);font-weight:600}
+
+  .key{display:flex;flex-wrap:wrap;gap:8px 22px;margin:14px 2px 0;font-size:12.5px;color:var(--ink-dim)}
+  .key span.item{display:inline-flex;align-items:center;gap:8px}
+  .key svg{flex:none;display:block}
+
+  .evidence{margin-top:16px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow)}
+  .evidence h3{margin:0 0 8px;font-size:14px;font-weight:700}
+  .tbl{overflow-x:auto}
+  table{border-collapse:collapse;width:100%;min-width:640px;font-size:13px}
+  th,td{text-align:left;padding:8px 10px;border-top:1px solid var(--line);vertical-align:top;line-height:1.5}
+  th{font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-dim);border-top:0;font-weight:600}
+  td.n{font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
+  td.zero{color:var(--bad)}
+  td.one{color:var(--ok)}
+  .evidence p{margin:10px 0 0;font-size:13px;color:var(--ink-dim);line-height:1.6;max-width:90ch}
+
+  /* Bilingual toggle: checkbox is a sibling of main; ~ switches .en/.ko */
+  main .ko{display:none}
+  main .en{display:inline}
+  #lang-toggle:checked ~ main .en{display:none}
+  #lang-toggle:checked ~ main .ko{display:inline}
+  main .lang-switch .ko{display:none}
+  #lang-toggle:checked ~ main .lang-switch .en{display:none}
+  #lang-toggle:checked ~ main .lang-switch .ko{display:inline}
+
+  @media (max-width:640px){ figure{padding:10px 8px 6px} .evidence{padding:12px} }
+
+  .scroll svg{min-width:900px}
+  .tally{display:flex;flex-wrap:wrap;gap:8px 22px;margin:14px 2px 0;font-size:14px;color:var(--ink)}
+  .tally b{font-variant-numeric:tabular-nums}
+  .tally .ok{color:var(--ok)} .tally .bad{color:var(--bad)} .tally .unk{color:var(--ink-dim)}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+
+<input type="checkbox" id="lang-toggle" aria-label="한국어 / English">
+<main class="wrap">
+  <header>
+    <div class="head-text">
+      <span class="eyebrow"><span class="en">Checklist</span><span class="ko">체크리스트</span></span>
+      <h1><span class="en">What works, what is broken, what nobody has run</span><span class="ko">되는 것, 고장 난 것, 아직 돌려 보지 않은 것</span></h1>
+      <p class="sub"><span class="en">Eight links in the supply chain stack, numbered on the map and listed with their status. Status comes from running the thing, not from reading the config.</span><span class="ko">공급망 스택의 연결 여덟 개를 지도에 번호로 표시하고 상태를 적었습니다. 상태는 설정을 읽은 결과가 아니라 실제로 돌려 본 결과입니다.</span></p>
+    </div>
+    <label class="lang-switch" for="lang-toggle"><span class="en">한국어</span><span class="ko">EN</span></label>
+  </header>
+
+  <section>
+    <div class="tally">
+      <span class="ok"><b>2</b> <span class="en">verified</span><span class="ko">확인됨</span></span>
+      <span class="bad"><b>2</b> <span class="en">broken</span><span class="ko">고장</span></span>
+      <span class="unk"><b>4</b> <span class="en">not run</span><span class="ko">미실행</span></span>
+    </div>
+    <figure>
+      <div class="scroll"><svg viewBox="0 0 1212 590" role="img" aria-label="Checklist of eight links in the supply chain stack, numbered on a small architecture map and listed with their status. Two are verified by running, two are broken, and four were not run.">
+<defs>
+<marker id="ar-ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--ink)"/></marker>
+<marker id="ar-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--ok)"/></marker>
+<marker id="ar-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--bad)"/></marker>
+<marker id="ar-dim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--ink-dim)"/></marker>
+</defs>
+<rect x="16" y="12" width="600" height="566" rx="10" fill="var(--surface-2)"/>
+<rect x="30" y="40" width="150" height="60" rx="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.3"/>
+<text x="105" y="76" text-anchor="middle" font-size="14" fill="var(--ink)" font-weight="700">LLM API</text>
+<rect x="30" y="205" width="150" height="130" rx="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.3"/>
+<text x="105" y="262" text-anchor="middle" font-size="15" fill="var(--ink)" font-weight="700">Worker</text>
+<text x="105" y="282" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="var(--ink-dim)">host process</text>
+<line x1="105" y1="205" x2="105" y2="102" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#ar-ink)"/>
+<circle cx="105" cy="153" r="12" fill="var(--ink-dim)"/><text x="105" y="157.5" text-anchor="middle" font-size="13" font-weight="700" fill="var(--bg)">1</text>
+<rect x="280" y="20" width="330" height="400" rx="10" fill="var(--surface)" stroke="var(--line)" stroke-width="1.2" stroke-dasharray="5 4"/>
+<text x="292" y="40" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="var(--ink-dim)" font-weight="600">docker-compose</text>
+<rect x="300" y="60" width="120" height="70" rx="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.3"/>
+<text x="360" y="100" text-anchor="middle" font-size="14" fill="var(--ink)" font-weight="700">Tempo</text>
+<rect x="300" y="170" width="120" height="70" rx="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.3"/>
+<text x="360" y="210" text-anchor="middle" font-size="14" fill="var(--ink)" font-weight="700">Loki</text>
+<rect x="300" y="280" width="120" height="70" rx="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.3"/>
+<text x="360" y="320" text-anchor="middle" font-size="14" fill="var(--ink)" font-weight="700">Prometheus</text>
+<rect x="490" y="60" width="100" height="290" rx="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.3"/>
+<text x="540" y="210" text-anchor="middle" font-size="14" fill="var(--ink)" font-weight="700">Grafana</text>
+<polyline points="180,225 240,225 240,95 298,95" fill="none" stroke="var(--bad)" stroke-width="1.8" stroke-dasharray="6 5" marker-end="url(#ar-bad)"/>
+<circle cx="269" cy="95" r="12" fill="var(--bad)"/><text x="269" y="99.5" text-anchor="middle" font-size="13" font-weight="700" fill="var(--bg)">3</text>
+<polyline points="180,265 260,265 260,205 298,205" fill="none" stroke="var(--ink)" stroke-width="1.8" marker-end="url(#ar-ink)"/>
+<circle cx="279" cy="205" r="12" fill="var(--ink-dim)"/><text x="279" y="209.5" text-anchor="middle" font-size="13" font-weight="700" fill="var(--bg)">2</text>
+<line x1="298" y1="315" x2="182" y2="315" stroke="var(--ok)" stroke-width="1.8" marker-end="url(#ar-ok)"/>
+<circle cx="240" cy="315" r="12" fill="var(--ok)"/><text x="240" y="319.5" text-anchor="middle" font-size="13" font-weight="700" fill="var(--bg)">5</text>
+<circle cx="420" cy="62" r="12" fill="var(--ink-dim)"/><text x="420" y="66.5" text-anchor="middle" font-size="13" font-weight="700" fill="var(--bg)">4</text>
+<line x1="490" y1="95" x2="422" y2="95" stroke="var(--ink-dim)" stroke-width="1.6" stroke-dasharray="4 4" marker-end="url(#ar-dim)"/>
+<line x1="490" y1="205" x2="422" y2="205" stroke="var(--ink-dim)" stroke-width="1.6" stroke-dasharray="4 4" marker-end="url(#ar-dim)"/>
+<circle cx="456" cy="150" r="12" fill="var(--bad)"/><text x="456" y="154.5" text-anchor="middle" font-size="13" font-weight="700" fill="var(--bg)">7</text>
+<line x1="490" y1="315" x2="422" y2="315" stroke="var(--ok)" stroke-width="1.8" marker-end="url(#ar-ok)"/>
+<circle cx="456" cy="315" r="12" fill="var(--ok)"/><text x="456" y="319.5" text-anchor="middle" font-size="13" font-weight="700" fill="var(--bg)">6</text>
+<circle cx="280" cy="20" r="12" fill="var(--ink-dim)"/><text x="280" y="24.5" text-anchor="middle" font-size="13" font-weight="700" fill="var(--bg)">8</text>
+<text class="en" x="105" y="380" text-anchor="middle" font-size="11.5" fill="var(--ink-dim)">Edge labels are in the list</text><text class="ko" x="105" y="380" text-anchor="middle" font-size="11.5" fill="var(--ink-dim)">연결의 설명은 오른쪽 목록에</text>
+<text class="en" x="105" y="397" text-anchor="middle" font-size="11.5" fill="var(--ink-dim)">on the right.</text><text class="ko" x="105" y="397" text-anchor="middle" font-size="11.5" fill="var(--ink-dim)">있습니다.</text>
+<circle cx="664" cy="42" r="12" fill="var(--ink-dim)"/><text x="664" y="46.5" text-anchor="middle" font-size="13" font-weight="700" fill="var(--bg)">1</text>
+<text class="en" x="690" y="38" text-anchor="start" font-size="14" fill="var(--ink)" font-weight="700">Worker calls the LLM</text><text class="ko" x="690" y="38" text-anchor="start" font-size="14" fill="var(--ink)" font-weight="700">워커가 LLM을 호출한다</text>
+<text class="en" x="690" y="57" text-anchor="start" font-size="11.5" fill="var(--ink-dim)">LLM_PROVIDER picks OpenAI or Gemini.</text><text class="ko" x="690" y="57" text-anchor="start" font-size="11.5" fill="var(--ink-dim)">LLM_PROVIDER로 OpenAI/Gemini 선택.</text>
+<text class="en" x="690" y="72" text-anchor="start" font-size="11.5" fill="var(--ink-dim)">Needs an API key; none available here.</text><text class="ko" x="690" y="72" text-anchor="start" font-size="11.5" fill="var(--ink-dim)">API 키가 필요한데 여기엔 없음.</text>
+<rect x="1096" y="26" width="100" height="28" rx="14" fill="none" stroke="var(--ink-dim)" stroke-width="1.5"/>
+<text class="en" x="1146" y="45" text-anchor="middle" font-size="12.5" fill="var(--ink-dim)" font-weight="700">? not run</text><text class="ko" x="1146" y="45" text-anchor="middle" font-size="12.5" fill="var(--ink-dim)" font-weight="700">? 미실행</text>
+<line x1="650" y1="83" x2="1196" y2="83" stroke="var(--line)" stroke-width="1"/>
+<circle cx="664" cy="113" r="12" fill="var(--ink-dim)"/><text x="664" y="117.5" text-anchor="middle" font-size="13" font-weight="700" fill="var(--bg)">2</text>
+<text class="en" x="690" y="109" text-anchor="start" font-size="14" fill="var(--ink)" font-weight="700">Logs reach Loki</text><text class="ko" x="690" y="109" text-anchor="start" font-size="14" fill="var(--ink)" font-weight="700">로그가 Loki에 도착한다</text>
+<text class="en" x="690" y="128" text-anchor="start" font-size="11.5" fill="var(--ink-dim)">Code read, not run: log_to_loki() has</text><text class="ko" x="690" y="128" text-anchor="start" font-size="11.5" fill="var(--ink-dim)">코드로만 확인: log_to_loki()에</text>
+<text class="en" x="690" y="143" text-anchor="start" font-size="11.5" fill="var(--ink-dim)">no try/except; a Loki outage raises.</text><text class="ko" x="690" y="143" text-anchor="start" font-size="11.5" fill="var(--ink-dim)">try/except가 없어 Loki 장애 시 예외.</text>
+<rect x="1096" y="97" width="100" height="28" rx="14" fill="none" stroke="var(--ink-dim)" stroke-width="1.5"/>
+<text class="en" x="1146" y="116" text-anchor="middle" font-size="12.5" fill="var(--ink-dim)" font-weight="700">? not run</text><text class="ko" x="1146" y="116" text-anchor="middle" font-size="12.5" fill="var(--ink-dim)" font-weight="700">? 미실행</text>
+<line x1="650" y1="154" x2="1196" y2="154" stroke="var(--line)" stroke-width="1"/>
+<circle cx="664" cy="184" r="12" fill="var(--bad)"/><text x="664" y="188.5" text-anchor="middle" font-size="13" font-weight="700" fill="var(--bg)">3</text>
+<text class="en" x="690" y="180" text-anchor="start" font-size="14" fill="var(--ink)" font-weight="700">Traces reach Tempo</text><text class="ko" x="690" y="180" text-anchor="start" font-size="14" fill="var(--ink)" font-weight="700">트레이스가 Tempo에 도착한다</text>
+<text class="en" x="690" y="199" text-anchor="start" font-size="11.5" fill="var(--ink-dim)">No repo-style setting delivers a trace.</text><text class="ko" x="690" y="199" text-anchor="start" font-size="11.5" fill="var(--ink-dim)">레포 방식 설정으로는 트레이스 0건.</text>
+<text class="en" x="690" y="214" text-anchor="start" font-size="11.5" fill="var(--ink-dim)">Fix: TRACELOOP_BASE_URL=localhost:4317</text><text class="ko" x="690" y="214" text-anchor="start" font-size="11.5" fill="var(--ink-dim)">해결: TRACELOOP_BASE_URL=localhost:4317</text>
+<rect x="1096" y="168" width="100" height="28" rx="14" fill="none" stroke="var(--bad)" stroke-width="1.5"/>
+<text class="en" x="1146" y="187" text-anchor="middle" font-size="12.5" fill="var(--bad)" font-weight="700">✕ broken</text><text class="ko" x="1146" y="187" text-anchor="middle" font-size="12.5" fill="var(--bad)" font-weight="700">✕ 고장</text>
+<line x1="650" y1="225" x2="1196" y2="225" stroke="var(--line)" stroke-width="1"/>
+<circle cx="664" cy="255" r="12" fill="var(--ink-dim)"/><text x="664" y="259.5" text-anchor="middle" font-size="13" font-weight="700" fill="var(--bg)">4</text>
+<text class="en" x="690" y="251" text-anchor="start" font-size="14" fill="var(--ink)" font-weight="700">Tempo accepts traffic from the host</text><text class="ko" x="690" y="251" text-anchor="start" font-size="14" fill="var(--ink)" font-weight="700">Tempo가 호스트 트래픽을 받는다</text>
+<text class="en" x="690" y="270" text-anchor="start" font-size="11.5" fill="var(--ink-dim)">Tempo logs its receiver as localhost:4317,</text><text class="ko" x="690" y="270" text-anchor="start" font-size="11.5" fill="var(--ink-dim)">수신기 주소가 localhost:4317이라</text>
+<text class="en" x="690" y="285" text-anchor="start" font-size="11.5" fill="var(--ink-dim)">loopback-only in a container. Docker not run.</text><text class="ko" x="690" y="285" text-anchor="start" font-size="11.5" fill="var(--ink-dim)">컨테이너에선 루프백 전용일 수 있음.</text>
+<rect x="1096" y="239" width="100" height="28" rx="14" fill="none" stroke="var(--ink-dim)" stroke-width="1.5"/>
+<text class="en" x="1146" y="258" text-anchor="middle" font-size="12.5" fill="var(--ink-dim)" font-weight="700">? not run</text><text class="ko" x="1146" y="258" text-anchor="middle" font-size="12.5" fill="var(--ink-dim)" font-weight="700">? 미실행</text>
+<line x1="650" y1="296" x2="1196" y2="296" stroke="var(--line)" stroke-width="1"/>
+<circle cx="664" cy="326" r="12" fill="var(--ok)"/><text x="664" y="330.5" text-anchor="middle" font-size="13" font-weight="700" fill="var(--bg)">5</text>
+<text class="en" x="690" y="322" text-anchor="start" font-size="14" fill="var(--ink)" font-weight="700">Prometheus scrapes the worker</text><text class="ko" x="690" y="322" text-anchor="start" font-size="14" fill="var(--ink)" font-weight="700">Prometheus가 워커를 스크레이프한다</text>
+<text class="en" x="690" y="341" text-anchor="start" font-size="11.5" fill="var(--ink-dim)">Real Prometheus 2.53 and a Temporal</text><text class="ko" x="690" y="341" text-anchor="start" font-size="11.5" fill="var(--ink-dim)">실제 Prometheus 2.53과 Temporal</text>
+<text class="en" x="690" y="356" text-anchor="start" font-size="11.5" fill="var(--ink-dim)">dev server, run outside Docker.</text><text class="ko" x="690" y="356" text-anchor="start" font-size="11.5" fill="var(--ink-dim)">개발 서버로 Docker 밖에서 실행.</text>
+<rect x="1096" y="310" width="100" height="28" rx="14" fill="none" stroke="var(--ok)" stroke-width="1.5"/>
+<text class="en" x="1146" y="329" text-anchor="middle" font-size="12.5" fill="var(--ok)" font-weight="700">✓ verified</text><text class="ko" x="1146" y="329" text-anchor="middle" font-size="12.5" fill="var(--ok)" font-weight="700">✓ 확인됨</text>
+<line x1="650" y1="367" x2="1196" y2="367" stroke="var(--line)" stroke-width="1"/>
+<circle cx="664" cy="397" r="12" fill="var(--ok)"/><text x="664" y="401.5" text-anchor="middle" font-size="13" font-weight="700" fill="var(--bg)">6</text>
+<text class="en" x="690" y="393" text-anchor="start" font-size="14" fill="var(--ink)" font-weight="700">Grafana shows the Temporal dashboard</text><text class="ko" x="690" y="393" text-anchor="start" font-size="14" fill="var(--ink)" font-weight="700">Grafana가 Temporal 대시보드를 보여 준다</text>
+<text class="en" x="690" y="412" text-anchor="start" font-size="11.5" fill="var(--ink-dim)">Grafana 10.0.3, 19 panels with data,</text><text class="ko" x="690" y="412" text-anchor="start" font-size="11.5" fill="var(--ink-dim)">Grafana 10.0.3에서 패널 19개에</text>
+<text class="en" x="690" y="427" text-anchor="start" font-size="11.5" fill="var(--ink-dim)">run outside Docker.</text><text class="ko" x="690" y="427" text-anchor="start" font-size="11.5" fill="var(--ink-dim)">데이터 표시, Docker 밖에서 실행.</text>
+<rect x="1096" y="381" width="100" height="28" rx="14" fill="none" stroke="var(--ok)" stroke-width="1.5"/>
+<text class="en" x="1146" y="400" text-anchor="middle" font-size="12.5" fill="var(--ok)" font-weight="700">✓ verified</text><text class="ko" x="1146" y="400" text-anchor="middle" font-size="12.5" fill="var(--ok)" font-weight="700">✓ 확인됨</text>
+<line x1="650" y1="438" x2="1196" y2="438" stroke="var(--line)" stroke-width="1"/>
+<circle cx="664" cy="468" r="12" fill="var(--bad)"/><text x="664" y="472.5" text-anchor="middle" font-size="13" font-weight="700" fill="var(--bg)">7</text>
+<text class="en" x="690" y="464" text-anchor="start" font-size="14" fill="var(--ink)" font-weight="700">Grafana can read logs and traces</text><text class="ko" x="690" y="464" text-anchor="start" font-size="14" fill="var(--ink)" font-weight="700">Grafana가 로그와 트레이스를 읽을 수 있다</text>
+<text class="en" x="690" y="483" text-anchor="start" font-size="11.5" fill="var(--ink-dim)">Only the Prometheus datasource is</text><text class="ko" x="690" y="483" text-anchor="start" font-size="11.5" fill="var(--ink-dim)">Prometheus 데이터소스만 구성됨.</text>
+<text class="en" x="690" y="498" text-anchor="start" font-size="11.5" fill="var(--ink-dim)">provisioned. Loki and Tempo need adding.</text><text class="ko" x="690" y="498" text-anchor="start" font-size="11.5" fill="var(--ink-dim)">Loki와 Tempo는 추가해야 함.</text>
+<rect x="1096" y="452" width="100" height="28" rx="14" fill="none" stroke="var(--bad)" stroke-width="1.5"/>
+<text class="en" x="1146" y="471" text-anchor="middle" font-size="12.5" fill="var(--bad)" font-weight="700">✕ broken</text><text class="ko" x="1146" y="471" text-anchor="middle" font-size="12.5" fill="var(--bad)" font-weight="700">✕ 고장</text>
+<line x1="650" y1="509" x2="1196" y2="509" stroke="var(--line)" stroke-width="1"/>
+<circle cx="664" cy="539" r="12" fill="var(--ink-dim)"/><text x="664" y="543.5" text-anchor="middle" font-size="13" font-weight="700" fill="var(--bg)">8</text>
+<text class="en" x="690" y="535" text-anchor="start" font-size="14" fill="var(--ink)" font-weight="700">docker-compose stack starts</text><text class="ko" x="690" y="535" text-anchor="start" font-size="14" fill="var(--ink)" font-weight="700">docker-compose 스택이 뜬다</text>
+<text class="en" x="690" y="554" text-anchor="start" font-size="11.5" fill="var(--ink-dim)">Never started: no Docker in this</text><text class="ko" x="690" y="554" text-anchor="start" font-size="11.5" fill="var(--ink-dim)">한 번도 띄워 보지 않음.</text>
+<text class="en" x="690" y="569" text-anchor="start" font-size="11.5" fill="var(--ink-dim)">environment.</text><text class="ko" x="690" y="569" text-anchor="start" font-size="11.5" fill="var(--ink-dim)">이 환경에는 Docker가 없음.</text>
+<rect x="1096" y="523" width="100" height="28" rx="14" fill="none" stroke="var(--ink-dim)" stroke-width="1.5"/>
+<text class="en" x="1146" y="542" text-anchor="middle" font-size="12.5" fill="var(--ink-dim)" font-weight="700">? not run</text><text class="ko" x="1146" y="542" text-anchor="middle" font-size="12.5" fill="var(--ink-dim)" font-weight="700">? 미실행</text>
+</svg>
+</div>
+      <figcaption><span class="en"><b>Verified</b> means it was run and the result was seen. <b>Broken</b> means a run or the provisioning files show it does not work. <b>Not run</b> means nobody has tried it, which is not the same as working. Item 2 was found by reading the code and is marked not run for that reason; it only needs a Loki binary to check. Items 1, 4 and 8 need an API key or Docker, and neither is available in the sessions that built this.</span><span class="ko"><b>확인됨</b>은 실제로 돌려서 결과를 본 것입니다. <b>고장</b>은 실행 결과나 프로비저닝 파일로 동작하지 않음이 드러난 것입니다. <b>미실행</b>은 아무도 시도하지 않은 것이고, 잘 된다는 뜻이 아닙니다. 2번은 코드를 읽어서 알아낸 것이라 미실행으로 표시했고, 확인하는 데는 Loki 바이너리만 있으면 됩니다. 1, 4, 8번은 API 키나 Docker가 필요한데, 이 작업을 한 세션에는 둘 다 없었습니다.</span></figcaption>
+    </figure>
+  </section>
+</main>
+
+</body></html>
